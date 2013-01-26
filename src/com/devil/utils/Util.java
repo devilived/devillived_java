@@ -4,6 +4,7 @@ import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Stack;
 
 import com.devil.utils.inferfaces.ITreeIterator;
@@ -24,6 +25,15 @@ public final class Util {
 			return Array.getLength(o) == 0;
 		}
 		return false;
+	}
+	
+	/**产生一个固定长度的随机数	 */
+	public static int randNumber(int len) {
+		int highestUnit = (int) Math.pow(10, len - 1);
+		Random random = new Random(47);
+		int highestBit = random.nextInt(9) + 1;
+		int laterNum = (int) Math.floor(random.nextInt(highestUnit));
+		return highestBit * highestUnit + laterNum;
 	}
 
 	/** 此方法其实就是迭代非递归前序遍历二叉树的扩展，可以遍历多叉树 */
