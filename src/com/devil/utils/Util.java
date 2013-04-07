@@ -1,5 +1,13 @@
 package com.devil.utils;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.Reader;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.List;
@@ -55,5 +63,60 @@ public final class Util {
 				stack.push(children.get(i));
 			}
 		}
+	}
+	
+	public static String formatException(Throwable e) {
+		Writer sw = new StringWriter();
+		PrintWriter pw = new PrintWriter(sw);
+		e.printStackTrace(pw);
+		Throwable cause = e.getCause();
+		while (cause != null) {
+			cause.printStackTrace(pw);
+			cause = cause.getCause();
+		}
+		String result = sw.toString();
+		pw.close();
+		return result;
+	}
+
+
+	public static String readerFromInputStream(InputStream is, String charset)
+			throws IOException {
+		if (is == null) {
+			return null;
+		}
+		InputStreamReader isr = null;
+		BufferedReader br = null;
+		StringBuilder sb = new StringBuilder();
+		try {
+			if (charset == null) {
+				isr = new InputStreamReader(is);
+			} else {
+				isr = new InputStreamReader(is, charset);
+			}
+
+			br = new BufferedReader(isr);
+
+			String tmp = null;
+			while ((tmp = br.readLine()) != null) {
+				sb.append(tmp);
+			}
+		} finally {
+			DebugUtil.close(br);
+		}
+		return sb.toString();
+	}
+
+	public static String readerFromReader(Reader reader) throws IOException {
+		if (reader == null) {
+			return null;
+		}
+		StringBuilder sb = new StringBuilder();
+		BufferedReader br = new BufferedReader(reader);
+		String tmp = null;
+		while ((tmp = br.readLine()) != null) {
+			sb.append(tmp);
+		}
+		return sb.toString();
 	}
 }

@@ -7,9 +7,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.crypto.Cipher;
@@ -43,18 +45,22 @@ public class DESCoder {
 
 	public DESCoder(byte[] key) {
 		this.key = key;
-		paramvector = key;
+		paramvector = Arrays.copyOfRange(key, 0, 8);
 	}
 
 	public DESCoder() {
 		this.key = this.getPrivateKey();
-		paramvector = key;
+		paramvector = Arrays.copyOfRange(key, 0, 8);
 	}
 
 	public static void main(String[] args) {
-		String src = "1234567";
+//		String src = "guessyourheart";
+//		System.out.println("原文是:" + src);
+//		byte[] key = "guessyourheart".getBytes(Charset.forName("UTF-8"));
+		String src ="https://raw.github.com/configs/configs/master/guessyourheart";
 		System.out.println("原文是:" + src);
-		DESCoder coder = new DESCoder();
+		byte[] key = "12345678".getBytes(Charset.forName("UTF-8"));
+		DESCoder coder = new DESCoder(key);
 		String cypher = coder.encrypt(src.getBytes());
 		System.out.println("加密后:" + new String(cypher));
 		byte[] plain = coder.decrypt(cypher);
@@ -119,15 +125,13 @@ public class DESCoder {
 	 * 因为不同的加密算法密钥的位数是不同的，因此通过spec进行初步整理，进行取舍，得到符合规范的key。
 	 */
 	private Key toKey(byte[] key) throws Exception {
-		// DESKeySpec spec = new DESKeySpec(key);
-		// SecretKeySpec keySpec = new SecretKeySpec(key, ALGORITHM);
-		// SecretKeyFactory keyFactory =
-		// SecretKeyFactory.getInstance(ALGORITHM);
-		// SecretKey secretKey = keyFactory.generateSecret(spec);
-		// return secretKey;
+		DESKeySpec spec = new DESKeySpec(key);
+		SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(ALGORITHM);
+		SecretKey secretKey = keyFactory.generateSecret(spec);
+		return secretKey;
 
-		SecretKeySpec keySpec = new SecretKeySpec(key, ALGORITHM);
-		return keySpec;
+		// SecretKeySpec keySpec = new SecretKeySpec(key, ALGORITHM);
+		// return keySpec;
 	}
 
 	private byte[] desDecrypt(byte[] cipherText) {
