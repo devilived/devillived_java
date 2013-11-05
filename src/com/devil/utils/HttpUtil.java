@@ -35,6 +35,113 @@ public class HttpUtil {
 		return http("GET", url, params, customHttpHeader);
 	}
 
+	public static InputStream postInputSteam(String url,
+			Map<String, String> params, Map<String, String> customHttpHeader) {
+		return httpInputStream("POST", url, params, customHttpHeader);
+	}
+
+	public static InputStream getInputSteam(String url,
+			Map<String, String> params, Map<String, String> customHttpHeader) {
+		return httpInputStream("GET", url, params, customHttpHeader);
+	}
+
+	private static InputStream httpInputStream(String method, String urlStr,
+			Map<String, String> params, Map<String, String> customHttpHeader) {
+		HttpURLConnection conn = null;
+		Reader reader = null;
+		StringBuilder sb = new StringBuilder();
+		if (params != null && params.size() > 0) {
+			for (Entry<String, String> entry : params.entrySet()) {
+				sb.append(entry.getKey() + "=" + entry.getValue()).append("&");
+			}
+			sb.deleteCharAt(sb.length() - 1);
+		}
+
+		try {
+			if (method == null || "GET".equalsIgnoreCase(method)
+					&& sb.length() > 0) {
+				urlStr = urlStr + "?" + sb.toString();
+				URL url = new URL(urlStr);
+				conn = (HttpURLConnection) url.openConnection();
+				if (DEBUG) {
+					System.out.println("======BELLOW DEBUG INFO============");
+					System.out.println("url is:" + method + "->" + urlStr);
+					logReqHead(conn);
+				}
+			} else {
+				URL url = new URL(urlStr);
+				conn = (HttpURLConnection) url.openConnection();
+			}
+			conn.setRequestMethod(method);
+			conn.setDoOutput(true);
+			conn.setDoInput(true);
+			conn.setUseCaches(false);
+			conn.setRequestProperty("Accept",
+					"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+			conn.setRequestProperty("Accept-Charset", "GBK,utf-8;q=0.7,*;q=0.3");
+			conn.setRequestProperty("Accept-Language", "zh-CN,zh;q=0.8");
+			// conn.setRequestProperty("Referer",
+			// "http://localhost:8080/Arithmancy/index.html");
+			conn.setRequestProperty("Accept-Encoding", "gzip");
+
+			if (customHttpHeader != null && customHttpHeader.size() > 0) {
+				for (Entry<String, String> entry : customHttpHeader.entrySet()) {
+					conn.setRequestProperty(entry.getKey(), entry.getValue());
+				}
+			}
+
+			if ("POST".equalsIgnoreCase(method) && sb.length() > 0) {
+				byte[] content = sb.toString().getBytes("utf-8");
+				// conn.setRequestProperty("Content-Length",
+				// String.valueOf(content.length));
+
+				if (DEBUG) {
+					System.out.println("======BELLOW DEBUG INFO============");
+					System.out.println("url is:" + method + "->" + urlStr + "?"
+							+ sb);
+					logReqHead(conn);
+				}
+				conn.getOutputStream().write(content);
+
+			} else {
+				if (DEBUG) {
+					System.out.println("======BELLOW DEBUG INFO============");
+					System.out.println("url is:" + urlStr + "?" + sb);
+					logReqHead(conn);
+				}
+			}
+
+			String respEncoding = conn.getContentEncoding();
+			InputStream is = null;
+			if ("gzip".equalsIgnoreCase(respEncoding)) {
+				is = new GZIPInputStream(conn.getInputStream());
+			} else {
+				is = conn.getInputStream();
+			}
+			return is;
+		} catch (IOException e) {
+			if (e instanceof UnknownHostException) {
+				throw new CodeException(CodeException.CODE_NO_NET, e);
+			}
+			if (conn == null) {
+				return null;
+			}
+			InputStream es = conn.getErrorStream();
+			if (es != null) {
+				try {
+					String errorMsg = Util.readerFromInputStream(es, null);
+					System.err.println("http error:" + errorMsg);
+					es.close();
+				} catch (IOException ioe) {
+					ioe.printStackTrace();
+				}
+			}
+		} finally {
+			DebugUtil.close(reader);
+		}
+		return null;
+	}
+
 	public static HttpResponse http(String method, String urlStr,
 			Map<String, String> params, Map<String, String> customHttpHeader) {
 		HttpURLConnection conn = null;

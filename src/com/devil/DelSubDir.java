@@ -7,7 +7,7 @@ import com.devil.utils.inferfaces.IVisitFile;
 
 public class DelSubDir {
 	public static void main(String[] args) {
-		String path = "E:/git/devillived";
+		String path = "E:\\workspace\\workspace";
 		String fileName = ".*\\.svn";
 		DelSubDir.delSubFile(path, fileName);
 	}
