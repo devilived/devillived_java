@@ -19,7 +19,7 @@ import org.dom4j.io.XMLWriter;
 
 import com.devil.utils.FileUtil;
 import com.devil.utils.StrUtil;
-import com.devil.utils.XmlUtil;
+import com.devil.utils.XmlJDomUtil;
 /*
  *本类与SpringAutomaticConfig的功能相同，提供spring配置文件的自动生成。
  *生成的文件和原类生成的文件排序后的内容完全相同。(关于Xml排序的程序未做上传)
@@ -297,7 +297,7 @@ public class SpringAutomaticConfig {
 		
 		config.setJavaDir("src/main/java");
 		
-		Document doc=XmlUtil.getXmlDocument(tplPath);
+		Document doc=XmlJDomUtil.getXmlDocFromFile(tplPath);
 		config.setDocument(doc);
 		
 		config.addBeanBuilder(new IBeanBuilder() {//历史原因特殊照顾

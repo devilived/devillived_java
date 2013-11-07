@@ -2,7 +2,7 @@ package com.devil.SpringAutoConfig;
 
 import org.dom4j.Document;
 
-import com.devil.utils.XmlUtil;
+import com.devil.utils.XmlJDomUtil;
 
 public class Main {
 	public static void main(String args[]) {
@@ -17,7 +17,7 @@ public class Main {
 		
 		config.setJavaDir("src/main/java");
 		
-		Document doc=XmlUtil.getXmlDocument(tplPath);
+		Document doc=XmlJDomUtil.getXmlDocFromFile(tplPath);
 		config.setDocument(doc);
 		config.createXml(destPath);
 	}
