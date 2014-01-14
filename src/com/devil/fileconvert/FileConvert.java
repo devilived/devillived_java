@@ -3,7 +3,6 @@ package com.devil.fileconvert;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -58,8 +57,7 @@ public class FileConvert {
 							fdest.getParentFile().mkdirs();
 						}
 						if (set.contains(ext)) {
-							Charset cs = Charset.forName("GBK");
-							String s = FileUtil.readFile(srcFilePath, cs);
+							String s = FileUtil.readFile(f, "GBK");
 							fw = new FileWriter(fdest);
 							fw.write(s);
 						} else {
