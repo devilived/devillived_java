@@ -7,7 +7,7 @@ import com.devil.utils.inferfaces.IVisitFile;
 
 public class DelSubDir {
 	public static void main(String[] args) {
-		String path = "E:\\workspace\\workspace";
+		String path = "C:\\Users\\Administrator\\Desktop\\apkUtil-v1.1.0 src";
 		String fileName = ".*\\.svn";
 		DelSubDir.delSubFile(path, fileName);
 	}

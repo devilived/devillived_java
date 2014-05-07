@@ -2,6 +2,7 @@ package com.devil.utils;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -9,7 +10,9 @@ import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,6 +22,14 @@ import com.devil.utils.inferfaces.ITreeIterator;
 import com.devil.utils.inferfaces.IVisitFile;
 
 public final class FileUtil {
+	public static String getSuffix(String f) {
+		int idx = f.lastIndexOf('.');
+		if (idx > -1) {
+			return f.substring(f.lastIndexOf('.')+1);
+		}
+		return null;
+	}
+
 	/** 把文件中的字符串读出来 **/
 	public static String readFile(File f, String cs) {
 		if (f.length() > Integer.MAX_VALUE) {
@@ -43,6 +54,24 @@ public final class FileUtil {
 			DebugUtil.close(baos, bis);
 		}
 		return null;
+	}
+
+	public static void readLine(File f, String cs, ReadLineCallBack cbk) {
+		if (f.length() > Integer.MAX_VALUE) {
+			throw new IllegalArgumentException("file is too large");
+		}
+		BufferedReader br = null;
+		try {
+			br = new BufferedReader(new InputStreamReader(new FileInputStream(f), cs));
+			String tmp;
+			while ((tmp = br.readLine()) != null) {
+				cbk.onReadLine(br, tmp);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			DebugUtil.close(br);
+		}
 	}
 
 	/**
@@ -170,5 +199,24 @@ public final class FileUtil {
 		}
 		f.delete();
 		tmpFile.renameTo(f);
+	}
+
+	public static File[] listFiles(File rootDir, final String... sufix) {
+		return rootDir.listFiles(new FilenameFilter() {
+
+			@Override
+			public boolean accept(File dir, String name) {
+				for (String s : sufix) {
+					if (name.toLowerCase().endsWith(s.toLowerCase())) {
+						return true;
+					}
+				}
+				return false;
+			}
+		});
+	}
+
+	public static interface ReadLineCallBack {
+		public void onReadLine(BufferedReader br, String str) throws Exception;
 	}
 }
