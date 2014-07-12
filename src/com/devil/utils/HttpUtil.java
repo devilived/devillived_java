@@ -1,314 +1,290 @@
 package com.devil.utils;
 
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.UnknownHostException;
-import java.util.HashMap;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.zip.GZIPInputStream;
 
-import com.devil.exceptions.CodeException;
-import com.devil.utils.DebugUtil;
-import com.devil.utils.Util;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpException;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.HttpVersion;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.scheme.PlainSocketFactory;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.ContentBody;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.protocol.HTTP;
 
+/**
+ * 1. supports get/post string/inputstream;<br/>
+ * 2. support gzip;<br/>
+ * 3. check the proxy setting in some mobile which doesn't setting the default
+ * proxy;<br/>
+ * 
+ * @author devil
+ * 
+ */
 public class HttpUtil {
-	private static final boolean DEBUG = true;
+	private static final int CONN_TIMEOUT = 30 * 1000;
+	private static final int READ_TIMEOUT = 30 * 1000;
+	private static final boolean USE_GZIP = false;
+	private static final String DEFALUT_CS = "UTF-8";
 
-	static {
-		System.setProperty("http.keepAlive", "true");
-		System.setProperty("http.maxConnections", "5");
+	public static String getStr(String url, String... params) throws HttpException {
+		HttpGet get = buildGet(url, params);
+		return httpStr(get);
 	}
 
-	public static HttpResponse post(String url, Map<String, String> params,
-			Map<String, String> customHttpHeader) {
-		return http("POST", url, params, customHttpHeader);
+	// public static InputStream getInputStream(String url, String... params) {
+	// HttpGet get = buildGet(url, params);
+	// return httpInputStream(get);
+	// }
+
+	public static String postStr(String url, String... params) throws HttpException {
+		HttpPost post = buildPost(url, params);
+		return httpStr(post);
 	}
 
-	public static HttpResponse get(String url, Map<String, String> params,
-			Map<String, String> customHttpHeader) {
-		return http("GET", url, params, customHttpHeader);
+	public static File getFile(String path, String url, String... params) throws HttpException {
+		HttpGet get = buildGet(url, params);
+		return httpFile(get, path);
 	}
 
-	public static InputStream postInputSteam(String url,
-			Map<String, String> params, Map<String, String> customHttpHeader) {
-		return httpInputStream("POST", url, params, customHttpHeader);
+	public static String postFile(String url, String name, File f) throws HttpException {
+		MultipartEntity mpEntity = new MultipartEntity(); // 文件传输
+		ContentBody cbFile = new FileBody(f);
+		mpEntity.addPart(name, cbFile);
+
+		HttpPost post = new HttpPost(url);
+		post.setEntity(mpEntity);
+		return httpStr(post);
 	}
 
-	public static InputStream getInputSteam(String url,
-			Map<String, String> params, Map<String, String> customHttpHeader) {
-		return httpInputStream("GET", url, params, customHttpHeader);
-	}
-
-	private static InputStream httpInputStream(String method, String urlStr,
-			Map<String, String> params, Map<String, String> customHttpHeader) {
-		HttpURLConnection conn = null;
-		Reader reader = null;
-		StringBuilder sb = new StringBuilder();
-		if (params != null && params.size() > 0) {
-			for (Entry<String, String> entry : params.entrySet()) {
-				sb.append(entry.getKey() + "=" + entry.getValue()).append("&");
-			}
-			sb.deleteCharAt(sb.length() - 1);
+	// //////////////////////////////////////////////////////////////
+	private static String httpStr(HttpUriRequest req) throws HttpException {
+		if (USE_GZIP) {
+			req.addHeader("Accept-Encoding", "gzip");
 		}
+		return http(req, new IHttpCallback<String>() {
 
-		try {
-			if (method == null || "GET".equalsIgnoreCase(method)
-					&& sb.length() > 0) {
-				urlStr = urlStr + "?" + sb.toString();
-				URL url = new URL(urlStr);
-				conn = (HttpURLConnection) url.openConnection();
-				if (DEBUG) {
-					System.out.println("======BELLOW DEBUG INFO============");
-					System.out.println("url is:" + method + "->" + urlStr);
-					logReqHead(conn);
+			@Override
+			public String onGotResp(HttpResponse resp) throws IOException {
+				InputStream stream = getInputStream(resp.getEntity());
+				Charset cs = Charset.forName("UTF-8");
+				String csStr = getCharSet(resp);
+				if (csStr != null) {
+					cs = Charset.forName(csStr);
 				}
-			} else {
-				URL url = new URL(urlStr);
-				conn = (HttpURLConnection) url.openConnection();
+				return getString(stream, cs);
 			}
-			conn.setRequestMethod(method);
-			conn.setDoOutput(true);
-			conn.setDoInput(true);
-			conn.setUseCaches(false);
-			conn.setRequestProperty("Accept",
-					"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
-			conn.setRequestProperty("Accept-Charset", "GBK,utf-8;q=0.7,*;q=0.3");
-			conn.setRequestProperty("Accept-Language", "zh-CN,zh;q=0.8");
-			// conn.setRequestProperty("Referer",
-			// "http://localhost:8080/Arithmancy/index.html");
-			conn.setRequestProperty("Accept-Encoding", "gzip");
+		});
+	}
 
-			if (customHttpHeader != null && customHttpHeader.size() > 0) {
-				for (Entry<String, String> entry : customHttpHeader.entrySet()) {
-					conn.setRequestProperty(entry.getKey(), entry.getValue());
+	private static File httpFile(HttpUriRequest req, final String path) throws HttpException {
+		if (USE_GZIP) {
+			req.addHeader("Accept-Encoding", "gzip");
+		}
+		return http(req, new IHttpCallback<File>() {
+
+			@Override
+			public File onGotResp(HttpResponse resp) throws IOException {
+				InputStream is = getInputStream(resp.getEntity());
+				File f = new File(path);
+				if (!f.getParentFile().exists()) {
+					f.getParentFile().mkdirs();
 				}
-			}
-
-			if ("POST".equalsIgnoreCase(method) && sb.length() > 0) {
-				byte[] content = sb.toString().getBytes("utf-8");
-				// conn.setRequestProperty("Content-Length",
-				// String.valueOf(content.length));
-
-				if (DEBUG) {
-					System.out.println("======BELLOW DEBUG INFO============");
-					System.out.println("url is:" + method + "->" + urlStr + "?"
-							+ sb);
-					logReqHead(conn);
-				}
-				conn.getOutputStream().write(content);
-
-			} else {
-				if (DEBUG) {
-					System.out.println("======BELLOW DEBUG INFO============");
-					System.out.println("url is:" + urlStr + "?" + sb);
-					logReqHead(conn);
-				}
-			}
-
-			String respEncoding = conn.getContentEncoding();
-			InputStream is = null;
-			if ("gzip".equalsIgnoreCase(respEncoding)) {
-				is = new GZIPInputStream(conn.getInputStream());
-			} else {
-				is = conn.getInputStream();
-			}
-			return is;
-		} catch (IOException e) {
-			if (e instanceof UnknownHostException) {
-				throw new CodeException(CodeException.CODE_NO_NET, e);
-			}
-			if (conn == null) {
-				return null;
-			}
-			InputStream es = conn.getErrorStream();
-			if (es != null) {
+				BufferedOutputStream bos = null;
 				try {
-					String errorMsg = Util.readerFromInputStream(es, null);
-					System.err.println("http error:" + errorMsg);
-					es.close();
-				} catch (IOException ioe) {
-					ioe.printStackTrace();
+					byte[] buff = new byte[1024];
+					bos = new BufferedOutputStream(new FileOutputStream(f));
+					int len;
+					while ((len = is.read(buff)) > 0) {
+						bos.write(buff, 0, len);
+					}
+				} finally {
+					if (bos != null) {
+						bos.close();
+					}
+				}
+				return f;
+			}
+		});
+	}
+
+	// ///////////////////////////////////////////////////////////
+	private static <RtnType> RtnType http(HttpUriRequest req, IHttpCallback<RtnType> callback) throws HttpException {
+		// and then from inside some thread executing a method
+		HttpEntity entity = null;
+		try {
+			// and then from inside some thread executing a method
+//			HttpResponse resp = executeWithCheckProxy(req);
+			HttpClient client = getHttpClient();
+			HttpResponse resp= client.execute(req);
+			if (resp == null || resp.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+				throw new HttpException("url:" + req.getURI() + "->\n reponse:" + resp.getStatusLine().toString());
+			}
+			return callback.onGotResp(resp);
+		} catch (IOException e) {
+			e.printStackTrace();
+			req.abort();
+		} finally {
+			// be sure the connection is released back to the connection manager
+			if (entity != null) {
+				try {
+					entity.consumeContent();
+				} catch (IOException e) {
+					e.printStackTrace();
+					req.abort();
 				}
 			}
-		} finally {
-			DebugUtil.close(reader);
 		}
 		return null;
 	}
 
-	public static HttpResponse http(String method, String urlStr,
-			Map<String, String> params, Map<String, String> customHttpHeader) {
-		HttpURLConnection conn = null;
-		Reader reader = null;
-		StringBuilder sb = new StringBuilder();
-		if (params != null && params.size() > 0) {
-			for (Entry<String, String> entry : params.entrySet()) {
-				sb.append(entry.getKey() + "=" + entry.getValue()).append("&");
+	private static interface IHttpCallback<RtnType> {
+		public RtnType onGotResp(HttpResponse response) throws IOException;
+	}
+
+	// ////////////////////////////////////////////
+	private static HttpGet buildGet(String url, String... params) {
+		if (params != null && params.length > 0) {
+			StringBuilder sb = new StringBuilder(url).append("?");
+			for (int i = 0; i < params.length - 1; i += 2) {
+				if (!CommUtil.isEmpty(params[i + 1])) {
+					try {
+						String value = URLEncoder.encode(params[i + 1], "UTF-8");
+						sb.append(params[i]).append("=").append(value).append("&");
+					} catch (UnsupportedEncodingException e) {
+						e.printStackTrace();
+					}
+				}
 			}
 			sb.deleteCharAt(sb.length() - 1);
+			url = sb.toString();
 		}
+		return new HttpGet(url);
+	}
 
-		try {
-			if (method == null || "GET".equalsIgnoreCase(method)
-					&& sb.length() > 0) {
-				urlStr = urlStr + "?" + sb.toString();
-				URL url = new URL(urlStr);
-				conn = (HttpURLConnection) url.openConnection();
-				if (DEBUG) {
-					System.out.println("======BELLOW DEBUG INFO============");
-					System.out.println("url is:" + method + "->" + urlStr);
-					logReqHead(conn);
-				}
-			} else {
-				URL url = new URL(urlStr);
-				conn = (HttpURLConnection) url.openConnection();
-			}
-			conn.setRequestMethod(method);
-			conn.setDoOutput(true);
-			conn.setDoInput(true);
-			conn.setUseCaches(false);
-			conn.setRequestProperty("Accept",
-					"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
-			conn.setRequestProperty("Accept-Charset", "GBK,utf-8;q=0.7,*;q=0.3");
-			conn.setRequestProperty("Accept-Language", "zh-CN,zh;q=0.8");
-			// conn.setRequestProperty("Referer",
-			// "http://localhost:8080/Arithmancy/index.html");
-			conn.setRequestProperty("Accept-Encoding", "gzip");
-
-			if (customHttpHeader != null && customHttpHeader.size() > 0) {
-				for (Entry<String, String> entry : customHttpHeader.entrySet()) {
-					conn.setRequestProperty(entry.getKey(), entry.getValue());
+	private static HttpPost buildPost(String url, String... params) {
+		HttpPost post = new HttpPost(url);
+		if (params != null && params.length > 0) {
+			List<BasicNameValuePair> nameValueList = new ArrayList<BasicNameValuePair>();
+			for (int i = 0; i < params.length; i += 2) {
+				if (!CommUtil.isEmpty(params[i + 1])) {
+					BasicNameValuePair pair = new BasicNameValuePair(params[i], params[i + 1]);
+					nameValueList.add(pair);
 				}
 			}
-
-			if ("POST".equalsIgnoreCase(method) && sb.length() > 0) {
-				byte[] content = sb.toString().getBytes("utf-8");
-				// conn.setRequestProperty("Content-Length",
-				// String.valueOf(content.length));
-
-				if (DEBUG) {
-					System.out.println("======BELLOW DEBUG INFO============");
-					System.out.println("url is:" + method + "->" + urlStr + "?"
-							+ sb);
-					logReqHead(conn);
-				}
-				conn.getOutputStream().write(content);
-
-			} else {
-				if (DEBUG) {
-					System.out.println("======BELLOW DEBUG INFO============");
-					System.out.println("url is:" + urlStr + "?" + sb);
-					logReqHead(conn);
-				}
-			}
-
-			reader = decodeRespInputStream(conn);
-			String msg = Util.readerFromReader(reader);
-
-			Map<String, List<String>> origHeaders = conn.getHeaderFields();
-			Map<String, String> headerMap = new HashMap<String, String>();
-			for (Entry<String, List<String>> entry : origHeaders.entrySet()) {
-				String s = "";
-				for (String ss : entry.getValue()) {
-					s += ss + "|";
-				}
-				headerMap.put(entry.getKey(), s.substring(0, s.length() - 1));
-			}
-			if (DEBUG) {
-				System.out.println("-----------------------------");
-				for (Entry<String, String> entry : headerMap.entrySet()) {
-					System.out.println(entry.getKey() + ":" + entry.getValue());
-				}
-
-				System.out.println("HTTP RETURN:\n" + msg);
-			}
-
-			return new HttpResponse(msg, headerMap);
-		} catch (IOException e) {
-			if (e instanceof UnknownHostException) {
-				throw new CodeException(CodeException.CODE_NO_NET, e);
-			}
-			if (conn == null) {
+			try {
+				post.setEntity(new UrlEncodedFormEntity(nameValueList, DEFALUT_CS));
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
 				return null;
 			}
-			InputStream es = conn.getErrorStream();
-			if (es != null) {
-				try {
-					String errorMsg = Util.readerFromInputStream(es, null);
-					System.err.println("http error:" + errorMsg);
-					es.close();
-				} catch (IOException ioe) {
-					ioe.printStackTrace();
-				}
+		}
+		return post;
+	}
+
+	// ///////////////////check wheth need proxy
+	private static final String getCharSet(HttpResponse resp) {
+		Header header = resp.getFirstHeader("Content-Type");
+		if (header == null) {
+			return null;
+		}
+		String contentType = header.getValue();
+		for (String element : contentType.split(";")) {
+			String[] keyValue = element.split("=");
+			if (keyValue[0] != null && keyValue[0].contains("charset")) {
+				return keyValue[1];
 			}
-		} finally {
-			DebugUtil.close(reader);
 		}
 		return null;
 	}
 
-	/************************************************************************************/
-	public static class HttpResponse {
-		private String content;
-		private Map<String, String> headers;
-
-		public HttpResponse(String content, Map<String, String> headers) {
-			this.content = content;
-			this.headers = headers;
+	private static InputStream getInputStream(HttpEntity entity) throws IOException {
+		InputStream stream = entity.getContent();
+		if (entity.getContentEncoding() != null && entity.getContentEncoding().getValue() != null
+				&& "gzip".equalsIgnoreCase(entity.getContentEncoding().getValue())) {
+			stream = new GZIPInputStream(stream);
 		}
-
-		public String getContent() {
-			return content;
-		}
-
-		public Map<String, String> getHeaders() {
-			return headers;
-		}
+		return stream;
 	}
 
-	private static Reader decodeRespInputStream(HttpURLConnection conn)
-			throws IOException {
-		String respEncoding = conn.getContentEncoding();
-		InputStream is = null;
-		if ("gzip".equalsIgnoreCase(respEncoding)) {
-			is = new GZIPInputStream(conn.getInputStream());
+	private static String getString(InputStream inputStream, Charset cs) throws IOException {
+		BufferedReader reader = null;
+		if (cs != null) {
+			reader = new BufferedReader(new InputStreamReader(inputStream, cs));
 		} else {
-			is = conn.getInputStream();
+			reader = new BufferedReader(new InputStreamReader(inputStream));
 		}
-
-		String charset = null;
-		String contentType = conn.getContentType();
-		if (contentType != null) {
-			String[] arr = contentType.replace(" ", "").split(";");
-			for (String s : arr) {
-				if (s.startsWith("charset=")) {
-					charset = s.split("=", 2)[1];
-				}
-			}
+		StringBuffer buffer = new StringBuffer();
+		String tmp = null;
+		while ((tmp = reader.readLine()) != null) {
+			buffer.append(tmp);
 		}
-
-		if (charset != null) {
-			return new InputStreamReader(is, charset);
-		} else {
-			return new InputStreamReader(is);
-		}
+		reader.close();
+		return buffer.toString();
 	}
 
-	private static void logReqHead(HttpURLConnection conn) {
-		Map<String, List<String>> headers = conn.getRequestProperties();
-		for (Entry<String, List<String>> entry : headers.entrySet()) {
-			String s = entry.getKey() + ":";
-			for (String ss : entry.getValue()) {
-				s += ss + "|";
-			}
+	private static final String CHARSET = HTTP.UTF_8;
+	private static HttpClient customerHttpClient;
 
-			System.out.println(s.substring(0, s.length() - 1));
+	public static synchronized HttpClient getHttpClient() {
+		if (null == customerHttpClient) {
+			HttpParams params = new BasicHttpParams();
+			// 设置一些基本参数
+			HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
+			HttpProtocolParams.setContentCharset(params, CHARSET);
+			// 禁止先发送请求头进行测试。
+			HttpProtocolParams.setUseExpectContinue(params, false);
+			// HttpProtocolParams.setUserAgent(params,
+			// "Mozilla/5.0(Linux;U;Android 2.2.1;en-us;Nexus One Build.FRG83) "
+			// +
+			// "AppleWebKit/553.1(KHTML,like Gecko) Version/4.0 Mobile Safari/533.1");
+			// 超时设置
+			/* 从连接池中取连接的超时时间 */
+			// ConnManagerParams.setTimeout(params, 1000);
+			/* 连接超时 */
+			HttpConnectionParams.setConnectionTimeout(params, CONN_TIMEOUT);
+			/* 请求超时 */
+			HttpConnectionParams.setSoTimeout(params, READ_TIMEOUT);
+
+			// 设置我们的HttpClient支持HTTP和HTTPS两种模式
+			SchemeRegistry schReg = new SchemeRegistry();
+			schReg.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+			schReg.register(new Scheme("https", SSLSocketFactory.getSocketFactory(), 443));
+
+			// 使用线程安全的连接管理来创建HttpClient
+			ClientConnectionManager conMgr = new ThreadSafeClientConnManager(params, schReg);
+			customerHttpClient = new DefaultHttpClient(conMgr, params);
 		}
+		return customerHttpClient;
 	}
 }

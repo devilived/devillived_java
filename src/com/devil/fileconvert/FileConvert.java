@@ -6,9 +6,9 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.devil.utils.CommUtil;
 import com.devil.utils.DebugUtil;
 import com.devil.utils.FileUtil;
-import com.devil.utils.Util;
 import com.devil.utils.inferfaces.IVisitFile;
 
 public class FileConvert {
@@ -27,7 +27,7 @@ public class FileConvert {
 		}
 		final String destDir = sb.append("_utf8").toString();
 		
-		if(Util.isNull(ext)){
+		if(CommUtil.isEmpty(ext)){
 			ext = "txt | xml | php | css | htm | html | java ";
 		}
 		String[] arr = ext.split("\\|");

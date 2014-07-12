@@ -130,7 +130,7 @@ public final class FileUtil {
 					return null;
 				}
 				File[] fileArr = t.listFiles(filter);
-				if (Util.isNull(fileArr)) {
+				if (CommUtil.isEmpty(fileArr)) {
 					return null;
 				}
 				return Arrays.asList(fileArr);
@@ -150,7 +150,7 @@ public final class FileUtil {
 				}
 			}
 		};
-		Util.quickPreIterateTree(new File(rootPath), it);
+		CommUtil.quickPreIterateTree(new File(rootPath), it);
 		return fileList.toArray(new String[0]);
 	}
 
@@ -163,7 +163,7 @@ public final class FileUtil {
 					return null;
 				}
 				File[] fileArr = f.listFiles();
-				if (Util.isNull(fileArr)) {
+				if (CommUtil.isEmpty(fileArr)) {
 					return null;
 				}
 				return Arrays.asList(fileArr);
@@ -177,7 +177,7 @@ public final class FileUtil {
 				vf.visit(f);
 			}
 		};
-		Util.quickPreIterateTree(new File(rootPath), it);
+		CommUtil.quickPreIterateTree(new File(rootPath), it);
 	}
 
 	public static void replaceStr(File f, String old, String replace, String charset) {

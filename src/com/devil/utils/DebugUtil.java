@@ -30,7 +30,7 @@ public final class DebugUtil {
 	}
 
 	public static void close(Object... objs) {
-		if (Util.isNull(objs)) {
+		if (CommUtil.isEmpty(objs)) {
 			return;
 		}
 		try {

@@ -11,8 +11,6 @@ import java.util.Map.Entry;
 import java.util.Properties;
 
 import com.devil.des.DESCoder;
-import com.devil.utils.HttpUtil;
-import com.devil.utils.HttpUtil.HttpResponse;
 
 public class Config {
 	private static final boolean DEBUG = true;
@@ -51,8 +49,8 @@ public class Config {
 			if (DEBUG) {
 				http = "z1PfjQ4nVbK4Zwmii0TvXw==(2,10)\n/GrexLtEny+jm6npRs0FjKsyIVnOGNYD";
 			} else {
-				HttpResponse resp = HttpUtil.get(CONF_URL, null, null);
-				http = resp.getContent();
+//				HttpResponse resp = HttpUtil.get(CONF_URL, null, null);
+//				http = resp.getContent();
 			}
 			BufferedReader br = new BufferedReader(new StringReader(http));
 			String firstLine = br.readLine();
