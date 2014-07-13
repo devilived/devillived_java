@@ -52,8 +52,8 @@ import org.apache.http.protocol.HTTP;
  * 
  */
 public class HttpUtil {
-	private static final int CONN_TIMEOUT = 30 * 1000;
-	private static final int READ_TIMEOUT = 30 * 1000;
+	private static final int CONN_TIMEOUT = 10 * 60 * 1000;
+	private static final int READ_TIMEOUT = 10 * 60 * 1000;
 	private static final boolean USE_GZIP = false;
 	private static final String DEFALUT_CS = "UTF-8";
 
@@ -72,9 +72,14 @@ public class HttpUtil {
 		return httpStr(post);
 	}
 
+	public static File getFile(String dir, boolean isDir, String url, String... params) throws HttpException {
+		HttpGet get = buildGet(url, params);
+		return httpFile(get, dir, true);
+	}
+
 	public static File getFile(String path, String url, String... params) throws HttpException {
 		HttpGet get = buildGet(url, params);
-		return httpFile(get, path);
+		return httpFile(get, path, false);
 	}
 
 	public static String postFile(String url, String name, File f) throws HttpException {
@@ -107,7 +112,7 @@ public class HttpUtil {
 		});
 	}
 
-	private static File httpFile(HttpUriRequest req, final String path) throws HttpException {
+	private static File httpFile(HttpUriRequest req, final String path, final boolean isDir) throws HttpException {
 		if (USE_GZIP) {
 			req.addHeader("Accept-Encoding", "gzip");
 		}
@@ -116,7 +121,7 @@ public class HttpUtil {
 			@Override
 			public File onGotResp(HttpResponse resp) throws IOException {
 				InputStream is = getInputStream(resp.getEntity());
-				File f = new File(path);
+				File f = isDir ? new File(path, getDefaultFileName(resp)) : new File(path);
 				if (!f.getParentFile().exists()) {
 					f.getParentFile().mkdirs();
 				}
@@ -144,9 +149,9 @@ public class HttpUtil {
 		HttpEntity entity = null;
 		try {
 			// and then from inside some thread executing a method
-//			HttpResponse resp = executeWithCheckProxy(req);
+			// HttpResponse resp = executeWithCheckProxy(req);
 			HttpClient client = getHttpClient();
-			HttpResponse resp= client.execute(req);
+			HttpResponse resp = client.execute(req);
 			if (resp == null || resp.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
 				throw new HttpException("url:" + req.getURI() + "->\n reponse:" + resp.getStatusLine().toString());
 			}
@@ -213,6 +218,17 @@ public class HttpUtil {
 	}
 
 	// ///////////////////check wheth need proxy
+	private static final String getDefaultFileName(HttpResponse resp) {
+		try {
+			Header header = resp.getFirstHeader("Content-Disposition");
+			String contentType = header.getValue();
+			int idx = contentType.indexOf("filename=");
+			return contentType.substring(idx + "filename=".length());
+		} catch (Throwable e) {
+			return null;
+		}
+	}
+
 	private static final String getCharSet(HttpResponse resp) {
 		Header header = resp.getFirstHeader("Content-Type");
 		if (header == null) {
