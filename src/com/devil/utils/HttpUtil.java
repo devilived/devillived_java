@@ -284,6 +284,7 @@ public class HttpUtil {
 	private static final String CHARSET = HTTP.UTF_8;
 	private static HttpClient customerHttpClient;
 
+	@SuppressWarnings("deprecation")
 	public static synchronized HttpClient getHttpClient() {
 		if (null == customerHttpClient) {
 			HttpParams params = new BasicHttpParams();
