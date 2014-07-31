@@ -15,6 +15,7 @@ import java.util.Iterator;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReadParam;
 import javax.imageio.ImageReader;
+import javax.imageio.stream.FileImageInputStream;
 import javax.imageio.stream.ImageInputStream;
 
 public class ImgUtil {
@@ -34,7 +35,8 @@ public class ImgUtil {
 		 * 返回包含所有当前已注册 ImageReader 的 Iterator，这些 ImageReader 声称能够解码指定格式。
 		 * 参数：formatName - 包含非正式格式名称 .（例如 "jpeg" 或 "tiff"）等 。
 		 */
-		Iterator<ImageReader> iterator = ImageIO.getImageReadersByFormatName(suffix);
+		FileImageInputStream fis = new FileImageInputStream(src);
+		Iterator<ImageReader> iterator = ImageIO.getImageReaders(fis);// ImageIO.getImageReadersBySuffix(suffix);
 		ImageReader reader = iterator.next();
 
 		ImageInputStream iis = null;
@@ -54,7 +56,7 @@ public class ImgUtil {
 			param.setSourceRegion(rect);
 			return reader.read(0, param);
 		} finally {
-//			CommUtil.close(iis);
+			// CommUtil.close(iis);
 		}
 	}
 
