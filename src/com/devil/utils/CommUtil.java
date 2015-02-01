@@ -11,6 +11,10 @@ import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.lang.reflect.Array;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -52,6 +56,45 @@ public class CommUtil {
 			return false;
 		}
 	}
+	
+	public static String byte2HexStr(byte[] arr) {
+		StringBuffer sb = new StringBuffer(arr.length * 2);
+		for (int i = 0; i < arr.length; ++i) {
+			String hex = Integer.toHexString((arr[i] & 0xFF) | 0x100).substring(1, 3);
+			sb.append(hex);
+		}
+		return sb.toString();
+	}
+
+	public static String md5(byte[] src) {
+		try {
+			MessageDigest md = MessageDigest.getInstance("MD5");
+			md.update(src);
+			byte b[] = md.digest();
+			return byte2HexStr(b);
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public static String urlEncoder(String s, String cs) {
+		try {
+			return URLEncoder.encode(s, cs);
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public static String urlDecoder(String s, String cs) {
+		try {
+			return URLDecoder.decode(s, cs);
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 
 	public static byte[] getStrByte(String s, String cs) {
 		try {
@@ -71,31 +114,41 @@ public class CommUtil {
 		}
 	}
 
-	public static <T> T getCause(Throwable srcEx, Class<T> exType) {
-		while (srcEx != null) {
-			if (exType.isAssignableFrom(srcEx.getClass())) {
-				return (T) srcEx;
-			}
-			srcEx = srcEx.getCause();
-		}
-		return null;
-	}
-
 	public static String formatException(Throwable e) {
 		Writer sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw);
 		e.printStackTrace(pw);
+		Throwable cause = e.getCause();
+		while (cause != null) {
+			cause.printStackTrace(pw);
+			cause = cause.getCause();
+		}
 		String result = sw.toString();
 		pw.close();
 		return result;
 	}
 
 	public static int randNumber(int len) {
-		int highestUnit = (int) Math.pow(10, len - 1);
 		Random random = new Random();
 		int highestBit = random.nextInt(9) + 1;
+
+		int highestUnit = (int) Math.pow(10, len - 1);
 		int laterNum = (int) Math.floor(random.nextInt(highestUnit));
 		return highestBit * highestUnit + laterNum;
+	}
+
+	public static String randString(int len) {
+		char[] dest = new char[len];
+		Random random = new Random();
+		for (int i = 0; i < len; i++) {
+			int r = random.nextInt(36);
+			if (r < 10) {
+				dest[i] = (char) r;
+			} else {
+				dest[i] = (char) ('a' + r - 10);
+			}
+		}
+		return new String(dest);
 	}
 
 	public static String readerFromInputStream(InputStream is, String charset) throws IOException {
@@ -157,6 +210,9 @@ public class CommUtil {
 		}
 		try {
 			for (Object obj : objs) {
+				if (isEmpty(obj)) {
+					continue;
+				}
 				if (obj instanceof InputStream) {
 					((InputStream) obj).close();
 				} else if (obj instanceof OutputStream) {
@@ -166,7 +222,8 @@ public class CommUtil {
 				} else if (obj instanceof Writer) {
 					((Writer) obj).close();
 				} else {
-					throw new IllegalArgumentException("only inputstream/outputstream/reader/writer can be the param");
+					throw new IllegalArgumentException("only inputstream/outputstream/reader/writer can be the param:"
+							+ obj.getClass());
 				}
 
 			}
@@ -195,5 +252,4 @@ public class CommUtil {
 			}
 		}
 	}
-
 }
