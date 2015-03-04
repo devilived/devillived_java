@@ -13,9 +13,8 @@ import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
 
 public final class XmlJDomUtil {
-	public static Document getXmlDocFromFile(String path) {
+	public static Document getXmlDocFromFile(File file) {
 		Document doc = null;
-		File file = new File(path);
 		if (file.exists()) {
 			SAXReader reader = new SAXReader();
 			try {
