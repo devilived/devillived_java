@@ -297,7 +297,7 @@ public class SpringAutomaticConfig {
 		
 		config.setJavaDir("src/main/java");
 		
-		Document doc=XmlJDomUtil.getXmlDocFromFile(tplPath);
+		Document doc=XmlJDomUtil.getXmlDocFromFile(new File(tplPath));
 		config.setDocument(doc);
 		
 		config.addBeanBuilder(new IBeanBuilder() {//历史原因特殊照顾
