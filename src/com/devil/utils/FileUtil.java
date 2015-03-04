@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.devil.utils.inferfaces.ITreeIterator;
+import com.devil.utils.IteratorUtil.ITreeIterator;
 import com.devil.utils.inferfaces.IVisitFile;
 
 public final class FileUtil {
@@ -150,7 +150,7 @@ public final class FileUtil {
 				}
 			}
 		};
-		CommUtil.quickPreIterateTree(new File(rootPath), it);
+		IteratorUtil.quickPreIterateTree(new File(rootPath), it);
 		return fileList.toArray(new String[0]);
 	}
 
@@ -177,7 +177,7 @@ public final class FileUtil {
 				vf.visit(f);
 			}
 		};
-		CommUtil.quickPreIterateTree(new File(rootPath), it);
+		IteratorUtil.quickPreIterateTree(new File(rootPath), it);
 	}
 
 	public static void replaceStr(File f, String old, String replace, String charset) {
