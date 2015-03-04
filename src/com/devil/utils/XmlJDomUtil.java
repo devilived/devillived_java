@@ -1,13 +1,12 @@
 package com.devil.utils;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
-import java.io.UnsupportedEncodingException;
 
 import org.dom4j.Document;
+import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.SAXReader;
@@ -21,8 +20,8 @@ public final class XmlJDomUtil {
 			SAXReader reader = new SAXReader();
 			try {
 				doc = reader.read(file);
-			} catch (Exception e) {
-				System.err.println("XML formmat error!");
+			} catch (DocumentException e) {
+				throw new IllegalStateException(e);
 			}
 		}
 		return doc;
@@ -33,8 +32,8 @@ public final class XmlJDomUtil {
 		SAXReader reader = new SAXReader();
 		try {
 			doc = reader.read(new StringReader(xml));
-		} catch (Exception e) {
-			System.err.println("XML formmat error!");
+		} catch (DocumentException e) {
+			throw new IllegalStateException(e);
 		}
 		return doc;
 	}
