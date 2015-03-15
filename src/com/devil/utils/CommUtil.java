@@ -23,6 +23,8 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Random;
 
+import org.apache.commons.codec.binary.Base64;
+
 public class CommUtil {
 	private static final boolean DEBUG = false;
 	private static final String TAG = "util";
@@ -72,6 +74,12 @@ public class CommUtil {
 			e.printStackTrace();
 			return null;
 		}
+	}
+	public static String encBase64Url(byte[] bytes){
+		return Base64.encodeBase64URLSafeString(bytes);
+	}
+	public static byte[] decBase64Url(String str){
+		return Base64.decodeBase64(str);
 	}
 
 	public static String urlEncoder(String s, String cs) {
