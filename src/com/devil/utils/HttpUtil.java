@@ -30,9 +30,8 @@ import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
-import org.apache.http.entity.mime.MultipartEntity;
-import org.apache.http.entity.mime.content.ContentBody;
-import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.message.BasicNameValuePair;
@@ -48,7 +47,7 @@ import org.apache.http.protocol.HTTP;
  * 3. check the proxy setting in some mobile which doesn't setting the default
  * proxy;<br/>
  * 
- * @author devil
+ * @author xingqisheng
  * 
  */
 public class HttpUtil {
@@ -83,12 +82,14 @@ public class HttpUtil {
 	}
 
 	public static String postFile(String url, String name, File f) throws HttpException {
-		MultipartEntity mpEntity = new MultipartEntity(); // 文件传输
-		ContentBody cbFile = new FileBody(f);
-		mpEntity.addPart(name, cbFile);
+		MultipartEntityBuilder builder = MultipartEntityBuilder.create();  
+//      builder.setCharset(Charset.forName("uft-8"));//设置请求的编码格式  
+		builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);//设置浏览器兼容模式 
+
+		builder.addBinaryBody(name, f);  
 
 		HttpPost post = new HttpPost(url);
-		post.setEntity(mpEntity);
+		post.setEntity(builder.build());
 		return httpStr(post);
 	}
 

@@ -3,6 +3,7 @@ package com.devil.utils;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
+import java.io.Reader;
 import java.io.StringReader;
 
 import org.dom4j.Document;
@@ -13,6 +14,17 @@ import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
 
 public final class XmlJDomUtil {
+	public static Document getXmlDocFromReader(Reader reader) {
+		Document doc = null;
+		SAXReader saxReader = new SAXReader();
+		try {
+			doc = saxReader.read(reader);
+		} catch (DocumentException e) {
+			throw new IllegalStateException(e);
+		}
+		return doc;
+	}
+
 	public static Document getXmlDocFromFile(File file) {
 		Document doc = null;
 		if (file.exists()) {
@@ -26,7 +38,7 @@ public final class XmlJDomUtil {
 		return doc;
 	}
 
-	public static Document getXmlDocFromXml(String xml) {
+	public static Document getXmlDocFromString(String xml) {
 		Document doc = null;
 		SAXReader reader = new SAXReader();
 		try {
