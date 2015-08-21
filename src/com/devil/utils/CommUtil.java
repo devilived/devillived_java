@@ -147,14 +147,14 @@ public class CommUtil {
 		for (int i = 0; i < len; i++) {
 			int r = random.nextInt(36);
 			if (r < 10) {
-				dest[i] = (char) r;
+				dest[i] = (char) ('0'+r);
 			} else {
 				dest[i] = (char) ('a' + r - 10);
 			}
 		}
 		return new String(dest);
 	}
-
+	
 	public static String readerFromInputStream(InputStream is, String charset) throws IOException {
 		if (is == null) {
 			return null;
@@ -208,6 +208,19 @@ public class CommUtil {
 		}
 	}
 
+	public static String fmtSize(Integer size){
+		if(size<1024){
+			return size+"B";
+		}
+		if(size<1020*1024){
+			return String.format("%.2fK", size*1.0/1024);
+		}
+		if(size<1024*1024*1024){
+			return String.format("%.2fM", size*1.0/1024/1024);
+		}
+		return String.format("%.2fG", size*1.0/1024/1024/1024);
+	}
+	
 	public static void close(Object... objs) {
 		if (isEmpty(objs)) {
 			return;

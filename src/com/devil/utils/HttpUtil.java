@@ -113,7 +113,7 @@ public class HttpUtil {
 		});
 	}
 
-	private static File httpFile(final HttpUriRequest req, final String path, final boolean isDir) throws HttpException {
+	private static File httpFile(final HttpUriRequest req, final String path, final boolean pathIsDir) throws HttpException {
 		if (USE_GZIP) {
 			req.addHeader("Accept-Encoding", "gzip");
 		}
@@ -139,7 +139,7 @@ public class HttpUtil {
 				}
 				BufferedOutputStream bos = null;
 				try {
-					byte[] buff = new byte[1024];
+					byte[] buff = new byte[1024*1024];
 					bos = new BufferedOutputStream(new FileOutputStream(file));
 					int len;
 					while ((len = is.read(buff)) > 0) {
