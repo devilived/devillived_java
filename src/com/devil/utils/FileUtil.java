@@ -22,7 +22,7 @@ import com.devil.utils.IteratorUtil.ITreeIterator;
 import com.devil.utils.inferfaces.IVisitFile;
 
 public final class FileUtil {
-	public static String getExtion(String f) {
+	public static String getExt(String f) {
 		int idx = f.lastIndexOf('.');
 		if (idx > -1) {
 			return f.substring(f.lastIndexOf('.')+1);

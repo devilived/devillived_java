@@ -123,7 +123,7 @@ public class HttpUtil {
 			public File onGotResp(HttpResponse resp) throws IOException {
 				InputStream is = getInputStream(resp.getEntity());
 				File file;
-				if (!isDir) {
+				if (!pathIsDir) {
 					file = new File(path);
 				} else {
 					String fileName = getDefaultFileName(resp);
