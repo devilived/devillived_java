@@ -118,7 +118,7 @@ public class CommUtil {
 		}
 	}
 
-	public static String formatException(Throwable e) {
+	public static String fmtException(Throwable e) {
 		Writer sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw);
 		e.printStackTrace(pw);
@@ -196,7 +196,7 @@ public class CommUtil {
 
 	private static final DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-	public static String formatDate(Date date) {
+	public static String fmtDate(Date date) {
 		return df.format(date);
 	}
 
