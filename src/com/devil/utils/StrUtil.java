@@ -18,10 +18,16 @@ public final class StrUtil {
 		}
 
 		Iterator<T> it = src.iterator();
-		StringBuilder sb = new StringBuilder(it.next().toString());
+		StringBuilder sb = new StringBuilder();
 
 		while (it.hasNext()) {
-			sb.append(delimer).append(it.next().toString());
+			T next = it.next();
+			if (next != null) {
+				sb.append(delimer).append(it.next().toString());
+			}
+		}
+		if (sb.length() > 0) {
+			sb.deleteCharAt(0);
 		}
 
 		return sb.toString();
