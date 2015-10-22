@@ -78,6 +78,13 @@
 		<!-- <artifactId>poi-ooxml</artifactId> -->
 		<!-- <version>3.12</version> -->
 		<!-- </dependency> -->
+		
+		<!-- java向IOS推送的包 -->
+<!-- 		<dependency> -->
+<!--          <groupId>com.notnoop.apns</groupId> -->
+<!--          <artifactId>apns</artifactId> -->
+<!--          <version>1.0.0.Beta6</version> -->
+<!--     </dependency> -->
 	</dependencies>
 	<repositories>
 		<repository>

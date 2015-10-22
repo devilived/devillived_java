@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
@@ -19,27 +20,18 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.HttpVersion;
-import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.scheme.PlainSocketFactory;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.HttpProtocolParams;
-import org.apache.http.protocol.HTTP;
+import org.apache.http.util.EntityUtils;
 
 /**
  * 1. supports get/post string/inputstream;<br/>
@@ -51,12 +43,11 @@ import org.apache.http.protocol.HTTP;
  * 
  */
 public class HttpUtil {
-	private static final int CONN_TIMEOUT = 10 * 60 * 1000;
-	private static final int READ_TIMEOUT = 10 * 60 * 1000;
-	private static final boolean USE_GZIP = false;
-	private static final String DEFALUT_CS = "UTF-8";
+	private static final int CONN_TIMEOUT = 2 * 60 * 1000;
+	private static final int READ_TIMEOUT = 2 * 60 * 1000;
+	private static final Charset CHARSET = StandardCharsets.UTF_8;
 
-	public static String getStr(String url, String... params) throws HttpException {
+	public static String getStr(String url, String... params) throws HttpException, IOException {
 		HttpGet get = buildGet(url, params);
 		return httpStr(get);
 	}
@@ -66,27 +57,28 @@ public class HttpUtil {
 	// return httpInputStream(get);
 	// }
 
-	public static String postStr(String url, String... params) throws HttpException {
+	public static String postStr(String url, String... params) throws HttpException, IOException {
 		HttpPost post = buildPost(url, params);
 		return httpStr(post);
 	}
 
-	public static File getFile(String dir, boolean isDir, String url, String... params) throws HttpException {
+	/**
+	 * 用GET方法下载文件
+	 * 
+	 * @param path
+	 *            如果最后的后缀是/或者\,那么就认为是文件夹，否则认为是文件名
+	 */
+	public static File download(String path, String url, String... params) throws HttpException, IOException {
 		HttpGet get = buildGet(url, params);
-		return httpFile(get, dir, true);
+		return httpFile(get, path);
 	}
 
-	public static File getFile(String path, String url, String... params) throws HttpException {
-		HttpGet get = buildGet(url, params);
-		return httpFile(get, path, false);
-	}
+	public static String submitFile(String url, String name, File f) throws HttpException, IOException {
+		MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+		// builder.setCharset(Charset.forName("uft-8"));//设置请求的编码格式
+		builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);// 设置浏览器兼容模式
 
-	public static String postFile(String url, String name, File f) throws HttpException {
-		MultipartEntityBuilder builder = MultipartEntityBuilder.create();  
-//      builder.setCharset(Charset.forName("uft-8"));//设置请求的编码格式  
-		builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);//设置浏览器兼容模式 
-
-		builder.addBinaryBody(name, f);  
+		builder.addBinaryBody(name, f);
 
 		HttpPost post = new HttpPost(url);
 		post.setEntity(builder.build());
@@ -94,103 +86,94 @@ public class HttpUtil {
 	}
 
 	// //////////////////////////////////////////////////////////////
-	private static String httpStr(HttpUriRequest req) throws HttpException {
-		if (USE_GZIP) {
-			req.addHeader("Accept-Encoding", "gzip");
-		}
-		return http(req, new IHttpCallback<String>() {
-
-			@Override
-			public String onGotResp(HttpResponse resp) throws IOException {
-				InputStream stream = getInputStream(resp.getEntity());
-				Charset cs = Charset.forName("UTF-8");
-				String csStr = getCharSet(resp);
-				if (csStr != null) {
-					cs = Charset.forName(csStr);
-				}
-				return getString(stream, cs);
-			}
-		});
-	}
-
-	private static File httpFile(final HttpUriRequest req, final String path, final boolean pathIsDir) throws HttpException {
-		if (USE_GZIP) {
-			req.addHeader("Accept-Encoding", "gzip");
-		}
-		return http(req, new IHttpCallback<File>() {
-
-			@Override
-			public File onGotResp(HttpResponse resp) throws IOException {
-				InputStream is = getInputStream(resp.getEntity());
-				File file;
-				if (!pathIsDir) {
-					file = new File(path);
-				} else {
-					String fileName = getDefaultFileName(resp);
-					if (fileName != null) {
-						file = new File(path, fileName);
-					} else {
-						String uriPath = req.getURI().getPath();
-						file = new File(path, uriPath.substring(uriPath.lastIndexOf("/")));
-					}
-				}
-				if (!file.getParentFile().exists()) {
-					file.getParentFile().mkdirs();
-				}
-				BufferedOutputStream bos = null;
-				try {
-					byte[] buff = new byte[1024*1024];
-					bos = new BufferedOutputStream(new FileOutputStream(file));
-					int len;
-					while ((len = is.read(buff)) > 0) {
-						bos.write(buff, 0, len);
-					}
-				} finally {
-					if (bos != null) {
-						bos.close();
-					}
-				}
-				return file;
-			}
-		});
-	}
-
-	// ///////////////////////////////////////////////////////////
-	private static <RtnType> RtnType http(HttpUriRequest req, IHttpCallback<RtnType> callback) throws HttpException {
-		// and then from inside some thread executing a method
-		HttpEntity entity = null;
+	private static String httpStr(HttpUriRequest req) throws IOException {
+		CloseableHttpResponse resp = null;
 		try {
 			// and then from inside some thread executing a method
 			// HttpResponse resp = executeWithCheckProxy(req);
-			HttpClient client = getHttpClient();
-			HttpResponse resp = client.execute(req);
+			CloseableHttpClient client = getHttpClient();
+			resp = client.execute(req);
 			if (resp == null || resp.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
 				req.abort();
-				throw new HttpException("url:" + req.getURI() + "->\n reponse:" + resp.getStatusLine().toString());
+				throw new IOException("url:" + req.getURI() + "->\n reponse:" + resp.getStatusLine().toString());
 			}
-			return callback.onGotResp(resp);
-		} catch (IOException e) {
-			e.printStackTrace();
-			req.abort();
+
+			HttpEntity entity = resp.getEntity();
+			InputStream stream = getInputStream(entity);
+			Charset cs = Charset.forName("UTF-8");
+			String csStr = getCharSet(resp);
+			if (csStr != null) {
+				cs = Charset.forName(csStr);
+			}
+			String result = getString(stream, cs);
+			EntityUtils.consume(entity);
+			return result;
 		} finally {
-			// be sure the connection is released back to the connection manager
-			if (entity != null) {
+			if (resp != null) {
 				try {
-					entity.consumeContent();
+					resp.close();
 				} catch (IOException e) {
 					e.printStackTrace();
-					req.abort();
 				}
 			}
 		}
-		return null;
 	}
 
-	private static interface IHttpCallback<RtnType> {
-		public RtnType onGotResp(HttpResponse response) throws IOException;
+	private static File httpFile(HttpUriRequest req, String path) throws IOException, HttpException {
+		CloseableHttpResponse resp = null;
+		try {
+			CloseableHttpClient client = getHttpClient();
+			resp = client.execute(req);
+			if (resp == null || resp.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+				req.abort();
+				throw new IOException("url:" + req.getURI() + "->\n reponse:" + resp.getStatusLine().toString());
+			}
+
+			HttpEntity entity = resp.getEntity();
+			InputStream is = getInputStream(entity);
+			File file;
+			if (path.endsWith("\\") || path.endsWith("/")) {
+				String fileName = getDefaultFileName(resp);
+				if (fileName != null) {
+					file = new File(path, fileName);
+				} else {
+					String uriPath = req.getURI().getPath();
+					file = new File(path, uriPath.substring(uriPath.lastIndexOf("/")));
+				}
+
+			} else {
+				file = new File(path);
+			}
+			if (!file.getParentFile().exists()) {
+				file.getParentFile().mkdirs();
+			}
+			BufferedOutputStream bos = null;
+			try {
+				byte[] buff = new byte[1024 * 1024];
+				bos = new BufferedOutputStream(new FileOutputStream(file));
+				int len;
+				while ((len = is.read(buff)) > 0) {
+					bos.write(buff, 0, len);
+				}
+			} finally {
+				if (bos != null) {
+					bos.close();
+				}
+			}
+
+			EntityUtils.consume(entity);
+			return file;
+		} finally {
+			if (resp != null) {
+				try {
+					resp.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 
-	// ////////////////////////////////////////////
 	private static HttpGet buildGet(String url, String... params) {
 		if (params != null && params.length > 0) {
 			StringBuilder sb = new StringBuilder(url).append("?");
@@ -207,7 +190,9 @@ public class HttpUtil {
 			sb.deleteCharAt(sb.length() - 1);
 			url = sb.toString();
 		}
-		return new HttpGet(url);
+		HttpGet get = new HttpGet(url);
+		get.setConfig(conf);
+		return get;
 	}
 
 	private static HttpPost buildPost(String url, String... params) {
@@ -216,21 +201,17 @@ public class HttpUtil {
 			List<BasicNameValuePair> nameValueList = new ArrayList<BasicNameValuePair>();
 			for (int i = 0; i < params.length; i += 2) {
 				if (!CommUtil.isEmpty(params[i + 1])) {
-					BasicNameValuePair pair = new BasicNameValuePair(params[i], params[i + 1]);
+					String value = CommUtil.urlEncoder(params[i + 1], "UTF-8");
+					BasicNameValuePair pair = new BasicNameValuePair(params[i], value);
 					nameValueList.add(pair);
 				}
 			}
-			try {
-				post.setEntity(new UrlEncodedFormEntity(nameValueList, DEFALUT_CS));
-			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
-				return null;
-			}
+			post.setEntity(new UrlEncodedFormEntity(nameValueList, CHARSET));
 		}
+		post.setConfig(conf);
 		return post;
 	}
 
-	// ///////////////////check wheth need proxy
 	private static final String getDefaultFileName(HttpResponse resp) {
 		try {
 			Header header = resp.getFirstHeader("Content-Disposition");
@@ -282,38 +263,14 @@ public class HttpUtil {
 		return buffer.toString();
 	}
 
-	private static final String CHARSET = HTTP.UTF_8;
-	private static HttpClient customerHttpClient;
+	private static CloseableHttpClient customerHttpClient;
 
-	@SuppressWarnings("deprecation")
-	public static synchronized HttpClient getHttpClient() {
+	private static RequestConfig conf = RequestConfig.custom().setSocketTimeout(CONN_TIMEOUT)
+			.setConnectTimeout(CONN_TIMEOUT).setConnectionRequestTimeout(READ_TIMEOUT).build();
+
+	public static synchronized CloseableHttpClient getHttpClient() {
 		if (null == customerHttpClient) {
-			HttpParams params = new BasicHttpParams();
-			// 设置一些基本参数
-			HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
-			HttpProtocolParams.setContentCharset(params, CHARSET);
-			// 禁止先发送请求头进行测试。
-			HttpProtocolParams.setUseExpectContinue(params, false);
-			// HttpProtocolParams.setUserAgent(params,
-			// "Mozilla/5.0(Linux;U;Android 2.2.1;en-us;Nexus One Build.FRG83) "
-			// +
-			// "AppleWebKit/553.1(KHTML,like Gecko) Version/4.0 Mobile Safari/533.1");
-			// 超时设置
-			/* 从连接池中取连接的超时时间 */
-			// ConnManagerParams.setTimeout(params, 1000);
-			/* 连接超时 */
-			HttpConnectionParams.setConnectionTimeout(params, CONN_TIMEOUT);
-			/* 请求超时 */
-			HttpConnectionParams.setSoTimeout(params, READ_TIMEOUT);
-
-			// 设置我们的HttpClient支持HTTP和HTTPS两种模式
-			SchemeRegistry schReg = new SchemeRegistry();
-			schReg.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
-			schReg.register(new Scheme("https", SSLSocketFactory.getSocketFactory(), 443));
-
-			// 使用线程安全的连接管理来创建HttpClient
-			ClientConnectionManager conMgr = new ThreadSafeClientConnManager(params, schReg);
-			customerHttpClient = new DefaultHttpClient(conMgr, params);
+			customerHttpClient = HttpClients.custom().setDefaultRequestConfig(conf).build();
 		}
 		return customerHttpClient;
 	}
