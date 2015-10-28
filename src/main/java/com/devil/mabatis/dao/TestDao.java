@@ -7,6 +7,6 @@ import org.apache.ibatis.annotations.Select;
 
 public interface TestDao {
 
-	@Select("	SELECT * from Test")
+	@Select("SELECT * from Test")
 	public List<Map> findList();
 }
