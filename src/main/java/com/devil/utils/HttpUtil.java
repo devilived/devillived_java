@@ -268,7 +268,7 @@ public class HttpUtil {
 	private static RequestConfig conf = RequestConfig.custom().setSocketTimeout(CONN_TIMEOUT)
 			.setConnectTimeout(CONN_TIMEOUT).setConnectionRequestTimeout(READ_TIMEOUT).build();
 
-	public static synchronized CloseableHttpClient getHttpClient() {
+	private static synchronized CloseableHttpClient getHttpClient() {
 		if (null == customerHttpClient) {
 			customerHttpClient = HttpClients.custom().setDefaultRequestConfig(conf).build();
 		}

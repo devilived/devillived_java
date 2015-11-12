@@ -20,6 +20,8 @@
   <classpathentry kind="var" path="M2_REPO/jfree/jfreechart/1.0.13/jfreechart-1.0.13.jar"/>
   <classpathentry kind="var" path="M2_REPO/jfree/jcommon/1.0.16/jcommon-1.0.16.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/mybatis/mybatis/3.3.0/mybatis-3.3.0.jar" sourcepath="M2_REPO/org/mybatis/mybatis/3.3.0/mybatis-3.3.0-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/ehcache/ehcache/3.0.0.m3/ehcache-3.0.0.m3.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/terracotta/offheap-store/2.1.0/offheap-store-2.1.0.jar"/>
   <classpathentry kind="var" path="M2_REPO/com/alibaba/fastjson/1.2.7/fastjson-1.2.7.jar" sourcepath="M2_REPO/com/alibaba/fastjson/1.2.7/fastjson-1.2.7-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/com/alibaba/druid/1.0.16/druid-1.0.16.jar"/>
   <classpathentry kind="lib" path="D:/GREEN/jdk1.8.0_11/lib/jconsole.jar"/>
