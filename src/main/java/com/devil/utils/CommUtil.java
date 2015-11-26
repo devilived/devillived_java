@@ -36,6 +36,8 @@ public class CommUtil {
 		}
 		if (o instanceof String) {
 			return ((String) o).trim().length() == 0;
+		} else if (o instanceof CharSequence) {
+			return ((CharSequence) o).length() == 0;
 		} else if (o instanceof Collection) {
 			return ((Collection<?>) o).size() == 0;
 		} else if (o instanceof Map) {
@@ -54,7 +56,7 @@ public class CommUtil {
 			return false;
 		}
 	}
-	
+
 	public static String byte2HexStr(byte[] arr) {
 		StringBuffer sb = new StringBuffer(arr.length * 2);
 		for (int i = 0; i < arr.length; ++i) {
@@ -75,10 +77,12 @@ public class CommUtil {
 			return null;
 		}
 	}
-	public static String encBase64Url(byte[] bytes){
+
+	public static String encBase64Url(byte[] bytes) {
 		return Base64.encodeBase64URLSafeString(bytes);
 	}
-	public static byte[] decBase64Url(String str){
+
+	public static byte[] decBase64Url(String str) {
 		return Base64.decodeBase64(str);
 	}
 
@@ -147,14 +151,14 @@ public class CommUtil {
 		for (int i = 0; i < len; i++) {
 			int r = random.nextInt(36);
 			if (r < 10) {
-				dest[i] = (char) ('0'+r);
+				dest[i] = (char) ('0' + r);
 			} else {
 				dest[i] = (char) ('a' + r - 10);
 			}
 		}
 		return new String(dest);
 	}
-	
+
 	public static String readerFromInputStream(InputStream is, String charset) throws IOException {
 		if (is == null) {
 			return null;
@@ -208,26 +212,26 @@ public class CommUtil {
 		}
 	}
 
-	public static String fmtSize(Integer size){
-		if(size<1024){
-			return size+"B";
+	public static String fmtSize(Integer size) {
+		if (size < 1024) {
+			return size + "B";
 		}
-		if(size<1020*1024){
-			return String.format("%.2fK", size*1.0/1024);
+		if (size < 1020 * 1024) {
+			return String.format("%.2fK", size * 1.0 / 1024);
 		}
-		if(size<1024*1024*1024){
-			return String.format("%.2fM", size*1.0/1024/1024);
+		if (size < 1024 * 1024 * 1024) {
+			return String.format("%.2fM", size * 1.0 / 1024 / 1024);
 		}
-		return String.format("%.2fG", size*1.0/1024/1024/1024);
+		return String.format("%.2fG", size * 1.0 / 1024 / 1024 / 1024);
 	}
-	
+
 	public static void close(Object... objs) {
 		if (isEmpty(objs)) {
 			return;
 		}
 		try {
 			for (Object obj : objs) {
-				if (isEmpty(obj)) {
+				if (obj == null) {
 					continue;
 				}
 				if (obj instanceof InputStream) {
@@ -239,13 +243,18 @@ public class CommUtil {
 				} else if (obj instanceof Writer) {
 					((Writer) obj).close();
 				} else {
-					throw new IllegalArgumentException("only inputstream/outputstream/reader/writer can be the param:"
-							+ obj.getClass());
+					try {
+						obj.getClass().getMethod("close").invoke(obj);
+					} catch (Throwable e) {
+						throw new IllegalArgumentException(
+								"only inputstream/outputstream/reader/writer and others that has 'close()' method can be the param"
+										+ obj.getClass());
+					}
 				}
 
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw new IllegalStateException("close resource error", e);
 		}
 	}
 }

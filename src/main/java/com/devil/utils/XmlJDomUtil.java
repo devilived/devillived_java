@@ -1,7 +1,7 @@
 package com.devil.utils;
 
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringReader;
@@ -14,6 +14,10 @@ import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
 
 public final class XmlJDomUtil {
+	public static Document getXmlDocFromString(String xml) {
+		return getXmlDocFromReader(new StringReader(xml));
+	}
+
 	public static Document getXmlDocFromReader(Reader reader) {
 		Document doc = null;
 		SAXReader saxReader = new SAXReader();
@@ -38,25 +42,16 @@ public final class XmlJDomUtil {
 		return doc;
 	}
 
-	public static Document getXmlDocFromString(String xml) {
-		Document doc = null;
-		SAXReader reader = new SAXReader();
+	public static void writeXml(Document doc, OutputStream out, boolean prerry) {
+		XMLWriter writer = null;
 		try {
-			doc = reader.read(new StringReader(xml));
-		} catch (DocumentException e) {
-			throw new IllegalStateException(e);
-		}
-		return doc;
-	}
-
-	public static void writeXmlToFile(Document doc, String path) {
-		try {
-			OutputFormat format = OutputFormat.createPrettyPrint();
-			XMLWriter writer = new XMLWriter(new OutputStreamWriter(new FileOutputStream(path), "UTF-8"), format);
+			OutputFormat format = prerry ? OutputFormat.createPrettyPrint() : OutputFormat.createCompactFormat();
+			writer = new XMLWriter(new OutputStreamWriter(out, "UTF-8"), format);
 			writer.write(doc);
-			writer.close();
 		} catch (Exception e) {
 			e.printStackTrace();
+		} finally {
+			CommUtil.close(writer);
 		}
 	}
 

@@ -39,22 +39,22 @@
 
 	</settings>
 	<typeAliases>
-		<package name="com.vidmt.export.entity" />
+		<package name="com.vidmt" />
 	</typeAliases>
 	<environments default="development">
 		<environment id="development">
 			<transactionManager type="JDBC" />
 <!-- 			<dataSource type="POOLED"> -->
-			<dataSource type="com.vidmt.of.plugin.mybatis.DruidDataSourceFactory">
-				<property name="driver" value="com.mysql.jdbc.Driver" />
+			<dataSource type="com.devil.mabatis.dao.DruidDataSourceFactory">
+<!-- 				<property name="driver" value="com.mysql.jdbc.Driver" /> -->
 				<property name="url"
-					value="jdbc:mysql://innerqdy.mysql.rds.aliyuncs.com:3306/qdy?useUnicode=true&amp;characterEncoding=utf-8" />
-				<property name="username" value="qdy" />
-				<property name="password" value="qdy2015db" />
+					value="jdbc:mysql://localhost:3306/test?useUnicode=true&amp;characterEncoding=utf-8" />
+				<property name="username" value="root" />
+				<property name="password" value="123456" />
 			</dataSource>
 		</environment>
 	</environments>
 	<mappers>
-		<package name="com.vidmt.export.dao" />
+		<package name="com.vidmt.dao" />
 	</mappers>
 </configuration>
