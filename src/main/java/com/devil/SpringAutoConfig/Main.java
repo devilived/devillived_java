@@ -4,7 +4,7 @@ import java.io.File;
 
 import org.dom4j.Document;
 
-import com.devil.utils.XmlJDomUtil;
+import com.devil.utils.XmlD4jUtil;
 
 public class Main {
 	public static void main(String args[]) {
@@ -20,7 +20,7 @@ public class Main {
 
 		config.setJavaDir("src/main/java");
 
-		Document doc = XmlJDomUtil.getXmlDocFromFile(new File(tplPath));
+		Document doc = XmlD4jUtil.getXmlDoc(new File(tplPath));
 		config.setDocument(doc);
 		config.createXml(destPath);
 	}

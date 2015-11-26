@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
-import java.io.StringReader;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -13,12 +12,16 @@ import org.dom4j.io.OutputFormat;
 import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
 
-public final class XmlJDomUtil {
-	public static Document getXmlDocFromString(String xml) {
-		return getXmlDocFromReader(new StringReader(xml));
+public final class XmlD4jUtil {
+	public static Document getXmlDoc(String xml) {
+		try {
+			return DocumentHelper.parseText(xml);
+		} catch (DocumentException e) {
+			throw new IllegalStateException(e);
+		}
 	}
 
-	public static Document getXmlDocFromReader(Reader reader) {
+	public static Document getXmlDoc(Reader reader) {
 		Document doc = null;
 		SAXReader saxReader = new SAXReader();
 		try {
@@ -29,7 +32,7 @@ public final class XmlJDomUtil {
 		return doc;
 	}
 
-	public static Document getXmlDocFromFile(File file) {
+	public static Document getXmlDoc(File file) {
 		Document doc = null;
 		if (file.exists()) {
 			SAXReader reader = new SAXReader();

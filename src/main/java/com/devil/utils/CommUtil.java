@@ -86,7 +86,7 @@ public class CommUtil {
 		return Base64.decodeBase64(str);
 	}
 
-	public static String urlEncoder(String s, String cs) {
+	public static String urlEnc(String s, String cs) {
 		try {
 			return URLEncoder.encode(s, cs);
 		} catch (UnsupportedEncodingException e) {
@@ -95,7 +95,7 @@ public class CommUtil {
 		}
 	}
 
-	public static String urlDecoder(String s, String cs) {
+	public static String urlDec(String s, String cs) {
 		try {
 			return URLDecoder.decode(s, cs);
 		} catch (UnsupportedEncodingException e) {

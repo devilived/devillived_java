@@ -179,12 +179,8 @@ public class HttpUtil {
 			StringBuilder sb = new StringBuilder(url).append("?");
 			for (int i = 0; i < params.length - 1; i += 2) {
 				if (!CommUtil.isEmpty(params[i + 1])) {
-					try {
-						String value = URLEncoder.encode(params[i + 1], "UTF-8");
-						sb.append(params[i]).append("=").append(value).append("&");
-					} catch (UnsupportedEncodingException e) {
-						e.printStackTrace();
-					}
+					String value = params[i + 1];
+					sb.append(params[i]).append("=").append(value).append("&");
 				}
 			}
 			sb.deleteCharAt(sb.length() - 1);
@@ -201,7 +197,7 @@ public class HttpUtil {
 			List<BasicNameValuePair> nameValueList = new ArrayList<BasicNameValuePair>();
 			for (int i = 0; i < params.length; i += 2) {
 				if (!CommUtil.isEmpty(params[i + 1])) {
-					String value = CommUtil.urlEncoder(params[i + 1], "UTF-8");
+					String value = params[i + 1];
 					BasicNameValuePair pair = new BasicNameValuePair(params[i], value);
 					nameValueList.add(pair);
 				}
