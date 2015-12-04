@@ -136,7 +136,10 @@ public class CommUtil {
 		return result;
 	}
 
-	public static int randNumber(int len) {
+	public static int randInt(int len) {
+		if (len > 9) {
+			throw new IllegalArgumentException("the length of 'len' must be less than 9");
+		}
 		Random random = new Random();
 		int highestBit = random.nextInt(9) + 1;
 
