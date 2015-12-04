@@ -7,8 +7,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -26,6 +24,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -73,18 +72,30 @@ public class HttpUtil {
 		return httpFile(get, path);
 	}
 
-	public static String submitFile(String url, String name, File f) throws HttpException, IOException {
+	public static String submitFile(String url, String name, File f,String... params) throws HttpException, IOException {
 		MultipartEntityBuilder builder = MultipartEntityBuilder.create();
 		// builder.setCharset(Charset.forName("uft-8"));//设置请求的编码格式
 		builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);// 设置浏览器兼容模式
-
+		for (int i = 0; i < params.length - 1; i += 2) {
+			if (!CommUtil.isEmpty(params[i + 1])) {
+				String value = params[i + 1];
+				builder.addTextBody(params[i], value);
+			}
+		}
 		builder.addBinaryBody(name, f);
 
 		HttpPost post = new HttpPost(url);
 		post.setEntity(builder.build());
 		return httpStr(post);
 	}
-
+	
+	public static String postStream(String url, String body) throws HttpException, IOException {
+		HttpPost post = new HttpPost(url);
+		StringEntity entiry = new StringEntity(body, "UTF-8");
+		post.setEntity(entiry);
+		post.setHeader("Content-Type", "text/xml;charset=utf-8");
+		return httpStr(post);
+	}
 	// //////////////////////////////////////////////////////////////
 	private static String httpStr(HttpUriRequest req) throws IOException {
 		CloseableHttpResponse resp = null;
