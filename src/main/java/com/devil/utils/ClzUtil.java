@@ -2,7 +2,7 @@ package com.devil.utils;
 
 import java.lang.reflect.Field;
 
-public class ClassUtil {
+public class ClzUtil {
 
 	public static Object getField(Object obj, String fieldName) {
 
