@@ -1,4 +1,4 @@
-package com.devil.mabatis.dao;
+package com.devil.mybatis.dao;
 
 import org.apache.ibatis.datasource.unpooled.UnpooledDataSourceFactory;
 
