@@ -2,8 +2,8 @@ package com.devil.utils;
 
 public class MybatisUtil {
 	public static void main(String[] args) {
-		String sql = " INSERT INTO v_location(uid,lat,lon,time,loc_private,sex,birth)VALUES(?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE lat=?, lon=? ";
-		String params = "6(Long), 39.927383(Double), 116.577323(Double), 2015-12-10 10:33:14.264(Timestamp), false(Boolean), 0(Integer), 1995-12-14(Date), 39.927383(Double), 116.577323(Double)";
+		String sql = "SELECT uid,lon,lat,`time`, 6378.138*1000*2*asin(sqrt(pow(sin( (?-lat)*pi()/180/2),2)+cos(?*pi()/180)*cos(lat*pi()/180)* pow(sin((?-lon)*pi()/180/2),2))) AS distance FROM v_location_nearby AS a WHERE a.loc_private=0 AND a.uid != ? ORDER BY distance ASC limit ?,? ";
+		String params = "28.68062(Double), 28.68062(Double), 112.900653(Double), 2498024(Long), 0(Integer), 20(Integer)";
 		System.out.println(buildSql(sql, params));
 	}
 
