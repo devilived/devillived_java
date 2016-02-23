@@ -46,7 +46,7 @@ public class HttpUtil {
 	private static final int READ_TIMEOUT = 2 * 60 * 1000;
 	private static final Charset CHARSET = StandardCharsets.UTF_8;
 
-	public static String getStr(String url, String... params) throws HttpException, IOException {
+	public static String getStr(String url, String... params) throws HttpException {
 		HttpGet get = buildGet(url, params);
 		return httpStr(get);
 	}
@@ -56,7 +56,7 @@ public class HttpUtil {
 	// return httpInputStream(get);
 	// }
 
-	public static String postStr(String url, String... params) throws HttpException, IOException {
+	public static String postStr(String url, String... params) throws HttpException {
 		HttpPost post = buildPost(url, params);
 		return httpStr(post);
 	}
@@ -72,7 +72,7 @@ public class HttpUtil {
 		return httpFile(get, path);
 	}
 
-	public static String submitFile(String url, String name, File f,String... params) throws HttpException, IOException {
+	public static String submitFile(String url, String name, File f, String... params) throws HttpException {
 		MultipartEntityBuilder builder = MultipartEntityBuilder.create();
 		// builder.setCharset(Charset.forName("uft-8"));//设置请求的编码格式
 		builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);// 设置浏览器兼容模式
@@ -88,16 +88,17 @@ public class HttpUtil {
 		post.setEntity(builder.build());
 		return httpStr(post);
 	}
-	
-	public static String postStream(String url, String body) throws HttpException, IOException {
+
+	public static String postStream(String url, String body) throws HttpException {
 		HttpPost post = new HttpPost(url);
 		StringEntity entiry = new StringEntity(body, "UTF-8");
 		post.setEntity(entiry);
 		post.setHeader("Content-Type", "text/xml;charset=utf-8");
 		return httpStr(post);
 	}
+
 	// //////////////////////////////////////////////////////////////
-	private static String httpStr(HttpUriRequest req) throws IOException {
+	private static String httpStr(HttpUriRequest req) throws HttpException {
 		CloseableHttpResponse resp = null;
 		try {
 			// and then from inside some thread executing a method
@@ -106,7 +107,7 @@ public class HttpUtil {
 			resp = client.execute(req);
 			if (resp == null || resp.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
 				req.abort();
-				throw new IOException("url:" + req.getURI() + "->\n reponse:" + resp.getStatusLine().toString());
+				throw new HttpException("url:" + req.getURI() + "->\n reponse:" + resp.getStatusLine().toString());
 			}
 
 			HttpEntity entity = resp.getEntity();
@@ -119,6 +120,8 @@ public class HttpUtil {
 			String result = getString(stream, cs);
 			EntityUtils.consume(entity);
 			return result;
+		} catch (IOException e) {
+			throw new HttpException("HTTP出错", e);
 		} finally {
 			if (resp != null) {
 				try {
@@ -187,7 +190,13 @@ public class HttpUtil {
 
 	private static HttpGet buildGet(String url, String... params) {
 		if (params != null && params.length > 0) {
-			StringBuilder sb = new StringBuilder(url).append("?");
+			StringBuilder sb = new StringBuilder(url);
+			if (!url.contains("?")) {
+				sb.append("?");
+			}
+			if (!url.endsWith("?") && !url.endsWith("&")) {
+				sb.append("&");
+			}
 			for (int i = 0; i < params.length - 1; i += 2) {
 				if (!CommUtil.isEmpty(params[i + 1])) {
 					String value = params[i + 1];
