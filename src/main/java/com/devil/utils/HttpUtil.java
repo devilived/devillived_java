@@ -286,7 +286,8 @@ public class HttpUtil {
 
 	private static synchronized CloseableHttpClient getHttpClient() {
 		if (null == customerHttpClient) {
-			customerHttpClient = HttpClients.custom().setDefaultRequestConfig(conf).build();
+			String UA = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36";
+			customerHttpClient = HttpClients.custom().setDefaultRequestConfig(conf).setUserAgent(UA).build();
 		}
 		return customerHttpClient;
 	}
