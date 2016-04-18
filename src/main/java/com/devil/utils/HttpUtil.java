@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
@@ -18,6 +19,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.CookieStore;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -27,8 +29,10 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
@@ -287,7 +291,18 @@ public class HttpUtil {
 	private static synchronized CloseableHttpClient getHttpClient() {
 		if (null == customerHttpClient) {
 			String UA = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36";
-			customerHttpClient = HttpClients.custom().setDefaultRequestConfig(conf).setUserAgent(UA).build();
+//			CookieStore cookieStore = new BasicCookieStore();
+//			String[][] cookies = { { "um_lang", "zh", "mobile.umeng.com" } };
+//			for (String[] cookiestr : cookies) {
+//				BasicClientCookie cookie = new BasicClientCookie(cookiestr[0], cookiestr[1]);
+//				cookie.setDomain(cookiestr[2]);
+//				cookie.setPath("/");
+//				cookieStore.addCookie(cookie);
+//			}
+
+			customerHttpClient = HttpClients.custom().setDefaultRequestConfig(conf)// .setDefaultCookieStore(cookieStore)
+					.setUserAgent(UA).build();
+
 		}
 		return customerHttpClient;
 	}
