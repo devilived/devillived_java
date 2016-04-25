@@ -48,9 +48,9 @@ public class CommUtil {
 		return false;
 	}
 
-	public static boolean isSubClass(Class<?> clz, Class<?> subClz) {
+	public static boolean isSubClass(Class<?> clz, Class<?> supperClz) {
 		try {
-			clz.asSubclass(subClz);
+			clz.asSubclass(supperClz);
 			return true;
 		} catch (ClassCastException e) {
 			return false;
