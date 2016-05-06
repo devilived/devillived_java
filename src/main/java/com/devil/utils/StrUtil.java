@@ -49,7 +49,9 @@ public final class StrUtil {
 		StringBuilder sb = new StringBuilder();
 
 		for (T t : src) {
-			sb.append(t).append(delimer);
+			if (t != null) {
+				sb.append(t).append(delimer);
+			}
 		}
 		sb.deleteCharAt(sb.length() - 1);
 
