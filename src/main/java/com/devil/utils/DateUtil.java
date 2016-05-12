@@ -5,6 +5,7 @@ import java.util.Date;
 
 public class DateUtil {
 	private static final long ADAY = 24 * 60 * 60 * 1000;
+	private static final long AWEEK = ADAY * 7;
 
 	public static int getDate(Date d) {
 		Calendar cld = Calendar.getInstance();
@@ -23,7 +24,7 @@ public class DateUtil {
 	}
 
 	public static boolean sameDay(Date d1, Date d2) {
-		return d1.getTime() / ADAY == d2.getTime() / ADAY;
+		return (d1.getTime() - d2.getTime()) / ADAY == 0;
 	}
 
 	public static boolean sameMonth(Date d1, Date d2) {

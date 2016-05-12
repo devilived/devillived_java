@@ -49,12 +49,7 @@ public class CommUtil {
 	}
 
 	public static boolean isSubClass(Class<?> clz, Class<?> supperClz) {
-		try {
-			clz.asSubclass(supperClz);
-			return true;
-		} catch (ClassCastException e) {
-			return false;
-		}
+		return supperClz.isAssignableFrom(clz);
 	}
 
 	public static String byte2HexStr(byte[] arr) {
