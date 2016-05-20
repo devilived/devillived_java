@@ -23,7 +23,7 @@ public final class StrUtil {
 		while (it.hasNext()) {
 			T next = it.next();
 			if (next != null) {
-				sb.append(delimer).append(it.next().toString());
+				sb.append(delimer).append(next.toString());
 			}
 		}
 		if (sb.length() > 0) {
