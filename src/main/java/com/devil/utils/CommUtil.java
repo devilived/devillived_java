@@ -99,23 +99,7 @@ public class CommUtil {
 		}
 	}
 
-	public static byte[] getStrByte(String s, String cs) {
-		try {
-			return s.getBytes(cs);
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-
-	public static String newString(byte[] bytes, String cs) {
-		try {
-			return new String(bytes, cs);
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
+	
 
 	public static String fmtException(Throwable e) {
 		Writer sw = new StringWriter();

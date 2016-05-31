@@ -1,5 +1,6 @@
 package com.devil.utils;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -56,6 +57,32 @@ public final class StrUtil {
 		sb.deleteCharAt(sb.length() - 1);
 
 		return sb.toString();
+	}
+	
+	public static byte[] getutf8(String s) {
+		return getStrByte(s, "UTF-8");
+	}
+
+	public static String newutf8(byte[] bytes) {
+		return newString(bytes, "UTF-8");
+	}
+
+	public static byte[] getStrByte(String s, String cs) {
+		try {
+			return s.getBytes(cs);
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public static String newString(byte[] bytes, String cs) {
+		try {
+			return new String(bytes, cs);
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	public static String lowFirstChar(String src) {
