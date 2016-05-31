@@ -1,6 +1,7 @@
 package com.devil.utils;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -58,13 +59,13 @@ public final class StrUtil {
 
 		return sb.toString();
 	}
-	
-	public static byte[] toutf8(String s) {
-		return toStrByte(s, "UTF-8");
+
+	public static byte[] bytesutf8(String s) {
+		return s.getBytes(StandardCharsets.UTF_8);
 	}
 
 	public static String newutf8(byte[] bytes) {
-		return newString(bytes, "UTF-8");
+		return new String(bytes, StandardCharsets.UTF_8);
 	}
 
 	public static byte[] toStrByte(String s, String cs) {
