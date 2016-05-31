@@ -59,15 +59,15 @@ public final class StrUtil {
 		return sb.toString();
 	}
 	
-	public static byte[] getutf8(String s) {
-		return getStrByte(s, "UTF-8");
+	public static byte[] toutf8(String s) {
+		return toStrByte(s, "UTF-8");
 	}
 
 	public static String newutf8(byte[] bytes) {
 		return newString(bytes, "UTF-8");
 	}
 
-	public static byte[] getStrByte(String s, String cs) {
+	public static byte[] toStrByte(String s, String cs) {
 		try {
 			return s.getBytes(cs);
 		} catch (UnsupportedEncodingException e) {
