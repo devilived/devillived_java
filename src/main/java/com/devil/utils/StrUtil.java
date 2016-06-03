@@ -1,10 +1,9 @@
 package com.devil.utils;
 
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 
@@ -38,21 +37,11 @@ public final class StrUtil {
 	}
 
 	public static byte[] getStrByte(String s, String cs) {
-		try {
-			return s.getBytes(cs);
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-			return null;
-		}
+		return s.getBytes(Charset.forName(cs));
 	}
 
 	public static String newString(byte[] bytes, String cs) {
-		try {
-			return new String(bytes, cs);
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-			return null;
-		}
+		return new String(bytes, Charset.forName(cs));
 	}
 
 	public static String lowFirstChar(String src) {
