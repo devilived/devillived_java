@@ -2,62 +2,31 @@ package com.devil.utils;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.List;
+
+import com.google.common.base.CaseFormat;
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 
 public final class StrUtil {
-	public static <T> String join(Collection<T> src) {
-		return join(src, null);
+	private static final Joiner defaultJoiner = Joiner.on(',').skipNulls();
+	private static final Splitter defaultSplit = Splitter.on(',').omitEmptyStrings().trimResults();
+
+	public static String join(Iterable<?> src) {
+		return defaultJoiner.join(src);
 	}
 
-	public static <T> String join(Collection<T> src, String delimer) {
-		if (src == null || src.size() == 0) {
-			return "";
-		}
-
-		if (delimer == null) {
-			delimer = ",";
-		}
-
-		Iterator<T> it = src.iterator();
-		StringBuilder sb = new StringBuilder();
-
-		while (it.hasNext()) {
-			T next = it.next();
-			if (next != null) {
-				sb.append(delimer).append(next.toString());
-			}
-		}
-		if (sb.length() > 0) {
-			sb.deleteCharAt(0);
-		}
-
-		return sb.toString();
+	public static String join(Iterable<?> src, String delimer) {
+		return Joiner.on(delimer).skipNulls().join(src);
 	}
 
-	public static <T> String join(T[] src) {
-		return join(src, null);
+	public List<String> split(CharSequence str) {
+		return defaultSplit.splitToList(str);
 	}
 
-	public static <T> String join(T[] src, String delimer) {
-		if (src == null || src.length == 0) {
-			return "";
-		}
-
-		if (delimer == null) {
-			delimer = ",";
-		}
-
-		StringBuilder sb = new StringBuilder();
-
-		for (T t : src) {
-			if (t != null) {
-				sb.append(t).append(delimer);
-			}
-		}
-		sb.deleteCharAt(sb.length() - 1);
-
-		return sb.toString();
+	public List<String> split(CharSequence str, String delimiString) {
+		Splitter.on(delimiString).omitEmptyStrings().trimResults();
+		return defaultSplit.splitToList(str);
 	}
 
 	public static byte[] bytesutf8(String s) {
@@ -68,7 +37,7 @@ public final class StrUtil {
 		return new String(bytes, StandardCharsets.UTF_8);
 	}
 
-	public static byte[] toStrByte(String s, String cs) {
+	public static byte[] getStrByte(String s, String cs) {
 		try {
 			return s.getBytes(cs);
 		} catch (UnsupportedEncodingException e) {
