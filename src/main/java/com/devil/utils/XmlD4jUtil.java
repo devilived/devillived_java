@@ -3,6 +3,7 @@ package com.devil.utils;
 import java.io.File;
 import java.io.Reader;
 import java.io.Writer;
+import java.net.URL;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -40,6 +41,17 @@ public final class XmlD4jUtil {
 			} catch (DocumentException e) {
 				throw new IllegalStateException(e);
 			}
+		}
+		return doc;
+	}
+
+	public static Document getXmlDoc(URL url) {
+		Document doc = null;
+		SAXReader saxReader = new SAXReader();
+		try {
+			doc = saxReader.read(url);
+		} catch (DocumentException e) {
+			throw new IllegalStateException(e);
 		}
 		return doc;
 	}
