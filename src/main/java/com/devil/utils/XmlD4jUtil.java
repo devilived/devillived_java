@@ -1,9 +1,8 @@
 package com.devil.utils;
 
 import java.io.File;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.io.Writer;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -45,16 +44,16 @@ public final class XmlD4jUtil {
 		return doc;
 	}
 
-	public static void writeXml(Document doc, OutputStream out, boolean prerry) {
-		XMLWriter writer = null;
+	public static void writeXml(Document doc, Writer writer, boolean prerry) {
+		XMLWriter xmlWriter = null;
 		try {
 			OutputFormat format = prerry ? OutputFormat.createPrettyPrint() : OutputFormat.createCompactFormat();
-			writer = new XMLWriter(new OutputStreamWriter(out, "UTF-8"), format);
-			writer.write(doc);
+			xmlWriter = new XMLWriter(writer, format);
+			xmlWriter.write(doc);
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			CommUtil.close(writer);
+			CommUtil.close(xmlWriter);
 		}
 	}
 
