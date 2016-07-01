@@ -1,7 +1,9 @@
 package com.devil.utils;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.Reader;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URL;
 
@@ -32,6 +34,17 @@ public final class XmlD4jUtil {
 		return doc;
 	}
 
+	public static Document getXmlDoc(URL url) {
+		Document doc = null;
+		SAXReader saxReader = new SAXReader();
+		try {
+			doc = saxReader.read(url);
+		} catch (DocumentException e) {
+			throw new IllegalStateException(e);
+		}
+		return doc;
+	}
+
 	public static Document getXmlDoc(File file) {
 		Document doc = null;
 		if (file.exists()) {
@@ -45,15 +58,13 @@ public final class XmlD4jUtil {
 		return doc;
 	}
 
-	public static Document getXmlDoc(URL url) {
-		Document doc = null;
-		SAXReader saxReader = new SAXReader();
-		try {
-			doc = saxReader.read(url);
-		} catch (DocumentException e) {
+	public static String toPrettyXml(Document doc) {
+		try (StringWriter sw = new StringWriter()) {
+			writeXml(doc, sw, true);
+			return sw.toString();
+		} catch (IOException e) {
 			throw new IllegalStateException(e);
 		}
-		return doc;
 	}
 
 	public static void writeXml(Document doc, Writer writer, boolean prerry) {
@@ -65,12 +76,24 @@ public final class XmlD4jUtil {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			CommUtil.close(xmlWriter);
+			if (xmlWriter != null) {
+				try {
+					xmlWriter.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 
 	public static Document createDocument() {
 		return DocumentHelper.createDocument();
+	}
+
+	public static Document createUTF8Document() {
+		Document doc = DocumentHelper.createDocument();
+		doc.setXMLEncoding("UTF-8");
+		return doc;
 	}
 
 }

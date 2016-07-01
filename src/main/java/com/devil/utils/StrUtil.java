@@ -14,18 +14,23 @@ public final class StrUtil {
 	public static String join(Iterable<?> src) {
 		return defaultJoiner.join(src);
 	}
-
-	public static String join(Iterable<?> src, String delimer) {
-		return Joiner.on(delimer).skipNulls().join(src);
+	public static String join(Object[] src) {
+		return defaultJoiner.join(src);
 	}
 
+	public static String join(String delimeter, Iterable<?> src) {
+		return Joiner.on(delimeter).skipNulls().join(src);
+	}
+
+	public static String join(String delimeter, Object[] src) {
+		return Joiner.on(delimeter).skipNulls().join(src);
+	}
 	public List<String> split(CharSequence str) {
 		return defaultSplit.splitToList(str);
 	}
 
 	public List<String> split(CharSequence str, String delimiString) {
-		Splitter.on(delimiString).omitEmptyStrings().trimResults();
-		return defaultSplit.splitToList(str);
+		return Splitter.on(delimiString).omitEmptyStrings().trimResults().splitToList(str);
 	}
 
 	public static byte[] bytesutf8(String s) {

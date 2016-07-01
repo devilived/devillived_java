@@ -1,6 +1,7 @@
 package com.devil.utils;
 
 import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -207,33 +208,16 @@ public class CommUtil {
 		return String.format("%.2fG", size * 1.0 / 1024 / 1024 / 1024);
 	}
 
-	public static void close(Object... objs) {
+	public static void close(Closeable... objs) {
 		if (isEmpty(objs)) {
 			return;
 		}
 		try {
-			for (Object obj : objs) {
+			for (Closeable obj : objs) {
 				if (obj == null) {
 					continue;
 				}
-				if (obj instanceof InputStream) {
-					((InputStream) obj).close();
-				} else if (obj instanceof OutputStream) {
-					((OutputStream) obj).close();
-				} else if (obj instanceof Reader) {
-					((Reader) obj).close();
-				} else if (obj instanceof Writer) {
-					((Writer) obj).close();
-				} else {
-					try {
-						obj.getClass().getMethod("close").invoke(obj);
-					} catch (Throwable e) {
-						throw new IllegalArgumentException(
-								"only inputstream/outputstream/reader/writer and others that has 'close()' method can be the param"
-										+ obj.getClass());
-					}
-				}
-
+				obj.close();
 			}
 		} catch (IOException e) {
 			throw new IllegalStateException("close resource error", e);
