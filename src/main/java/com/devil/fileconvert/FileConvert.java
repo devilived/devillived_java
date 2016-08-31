@@ -3,13 +3,16 @@ package com.devil.fileconvert;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashSet;
 import java.util.Set;
 
 import com.devil.utils.CommUtil;
 import com.devil.utils.DebugUtil;
-import com.devil.utils.FileUtil;
-import com.devil.utils.inferfaces.IVisitFile;
 
 public class FileConvert {
 
@@ -17,61 +20,62 @@ public class FileConvert {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		String src="D:\\xampp\\htdocs\\discuz\\source\\plugin\\exam";
-		GBK2UTF8(src, null);
-	}
-	public static void GBK2UTF8(final String srcDir, String ext){
-		StringBuilder sb = new StringBuilder(srcDir);
-		if(srcDir.endsWith(File.separator)){
-			sb.deleteCharAt(srcDir.length()-1);
+		String src = "D:\\xampp\\htdocs\\discuz\\source\\plugin\\exam";
+		try {
+			GBK2UTF8(new File(src), null);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		final String destDir = sb.append("_utf8").toString();
-		
-		if(CommUtil.isEmpty(ext)){
+	}
+
+	public static void GBK2UTF8(final File srcDir, String ext) throws IOException {
+		final File desrDir = new File(srcDir.getParentFile(), srcDir.getName() + "_utf8");
+
+		if (CommUtil.isEmpty(ext)) {
 			ext = "txt | xml | php | css | htm | html | java ";
 		}
 		String[] arr = ext.split("\\|");
-		
+
 		final Set<String> set = new HashSet<String>();
-		for(String s : arr){
+		for (String s : arr) {
 			set.add(s.trim());
 		}
-		
-		IVisitFile vf = new IVisitFile() {
+
+		Files.walkFileTree(srcDir.toPath(), new SimpleFileVisitor<Path>() {
 			@Override
-			public void visit(File f) {
+			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+				File f = file.toFile();
 				String fName = f.getName();
 				int pos = fName.lastIndexOf('.');
-				if(pos<1){
-					return;
+				if (pos < 1) {
+					return super.visitFile(file, attrs);
 				}
-				
-				String ext = fName.substring(pos+1);
-				if (f.isFile()) {
-					FileWriter fw = null;
-					try {
-						String srcFilePath = f.getAbsolutePath();
-						String destFilePath = srcFilePath.replace(srcDir, destDir);
-						File fdest = new File(destFilePath);
-						if (!fdest.getParentFile().exists()) {
-							fdest.getParentFile().mkdirs();
-						}
-						if (set.contains(ext)) {
-							String s = FileUtil.readFile(f, "GBK");
-							fw = new FileWriter(fdest);
-							fw.write(s);
-						} else {
-							FileUtil.copy(srcFilePath, destFilePath);
-						}
-					} catch (IOException e) {
-						e.printStackTrace();
-					}finally{
-						DebugUtil.close(fw);
+
+				String ext = fName.substring(pos + 1);
+				FileWriter fw = null;
+				try {
+					Path relPath = srcDir.toPath().relativize(file);
+					File fdest = new File(desrDir, relPath.toString());
+					if (!fdest.getParentFile().exists()) {
+						fdest.getParentFile().mkdirs();
 					}
+					if (set.contains(ext)) {
+						byte[] gbkbytes = Files.readAllBytes(f.toPath());
+						String s = new String(gbkbytes, "GBK");
+						fw = new FileWriter(fdest);
+						fw.write(s);
+					} else {
+						Files.copy(f.toPath(), fdest.toPath());
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				} finally {
+					DebugUtil.close(fw);
 				}
+				return super.visitFile(file, attrs);
 			}
-		};
-		FileUtil.visitDir(srcDir, vf);
+		});
 	}
 
 }

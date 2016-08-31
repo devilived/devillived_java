@@ -17,6 +17,8 @@ import javax.imageio.ImageReadParam;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 
+import com.google.common.io.Files;
+
 public class ImgUtil {
 	public static BufferedImage getGrayPicture(BufferedImage originalImage) {
 		int imageWidth = originalImage.getWidth();
@@ -29,7 +31,7 @@ public class ImgUtil {
 	}
 
 	public static BufferedImage cutSquareBuffImg(File src) throws IOException {
-		String suffix = FileUtil.getExt(src.getName());
+		String suffix = Files.getFileExtension(src.getName());
 		/*
 		 * 返回包含所有当前已注册 ImageReader 的 Iterator，这些 ImageReader 声称能够解码指定格式。
 		 * 参数：formatName - 包含非正式格式名称 .（例如 "jpeg" 或 "tiff"）等 。
@@ -59,7 +61,7 @@ public class ImgUtil {
 	}
 
 	public static BufferedImage cutBuffImg(File src, int x, int y, int w, int h) throws IOException {
-		String suffix = FileUtil.getExt(src.getName());
+		String suffix = Files.getFileExtension(src.getName());
 		/*
 		 * 返回包含所有当前已注册 ImageReader 的 Iterator，这些 ImageReader 声称能够解码指定格式。
 		 * 参数：formatName - 包含非正式格式名称 .（例如 "jpeg" 或 "tiff"）等 。

@@ -78,7 +78,7 @@ public class HttpUtil {
 
 	public static String submitFile(String url, String name, File f, String... params) throws HttpException {
 		MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-		// builder.setCharset(Charset.forName("uft-8"));//设置请求的编码格式
+		builder.setCharset(Charset.forName("uft-8"));//设置请求的编码格式
 		builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);// 设置浏览器兼容模式
 		for (int i = 0; i < params.length - 1; i += 2) {
 			if (!CommUtil.isEmpty(params[i + 1])) {
