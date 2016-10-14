@@ -58,12 +58,11 @@
 	</build>
 	<dependencies>
 	<!-- https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-webapp -->
-<dependency>
-    <groupId>org.eclipse.jetty</groupId>
-    <artifactId>jetty-webapp</artifactId>
-    <version>9.2.14.v20151106</version>
-</dependency>
-
+		<dependency>
+			<groupId>com.github.pagehelper</groupId>
+			<artifactId>pagehelper</artifactId>
+			<version>4.1.6</version>
+		</dependency>
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
@@ -145,9 +144,17 @@
 		<!-- <version>1.0.0.Beta6</version> -->
 		<!-- </dependency> -->
 	</dependencies>
+	<mirrors>
+		<mirror>
+			<id>alimaven</id>
+			<name>aliyun maven</name>
+			<url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+			<mirrorOf>*</mirrorOf>
+		</mirror>
+	</mirrors>
 	<repositories>
 		<repository>
-			<id>oschina-repos</id>
+			<id>ali-repos</id>
 			<name>Oschina Releases</name>
 			<url>http://maven.oschina.net/content/groups/public</url>
 		</repository>

@@ -74,11 +74,11 @@
 	</appender>
 
 	<!-- add begin -->
-<!-- 	<logger name="com.vidmt" additivity="false"> -->
-<!-- 		<level value="DEBUG" /> -->
-<!-- 		<appender-ref ref="STDOUT" /> -->
-<!-- 		<appender-ref ref="all-out" /> -->
-<!-- 	</logger> -->
+	<logger name="com.devil" additivity="false">
+		<level value="DEBUG" />
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="all-out" />
+	</logger>
 	<!-- add end -->
 	
 	
