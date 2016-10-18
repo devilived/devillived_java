@@ -1,13 +1,8 @@
 package com.devil.utils;
 
-import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.io.Reader;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
@@ -105,7 +100,23 @@ public class CommUtil {
 		}
 	}
 
-	
+	public static byte[] getStrByte(String s, String cs) {
+		try {
+			return s.getBytes(cs);
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public static String newString(byte[] bytes, String cs) {
+		try {
+			return new String(bytes, cs);
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 
 	public static String fmtException(Throwable e) {
 		Writer sw = new StringWriter();
@@ -121,6 +132,29 @@ public class CommUtil {
 		return result;
 	}
 
+	public static <T extends Throwable> T getException(Throwable e, Class<T> type) {
+		while (true) {
+			if (isSubClass(type, e.getClass())) {
+				return (T)e;
+			} else {
+				e = e.getCause();
+				if (e == null) {
+					return null;
+				}
+			}
+		}
+	}
+
+	public static Throwable getException(Throwable e, String clzName) {
+		Class<Throwable> clz;
+		try {
+			clz = (Class<Throwable>) Class.forName(clzName);
+			return getException(e, clz);
+		} catch (ClassNotFoundException e1) {
+			throw new IllegalArgumentException(clzName);
+		}
+	}
+	
 	public static int randInt(int len) {
 		if (len > 9) {
 			throw new IllegalArgumentException("the length of 'len' must be less than 9");
@@ -133,57 +167,35 @@ public class CommUtil {
 		return highestBit * highestUnit + laterNum;
 	}
 
+	private static final char[] alpha = "0123456789abcdefghijklmnopqrstuvwxyz".toCharArray();
+
 	public static String randString(int len) {
 		char[] dest = new char[len];
 		Random random = new Random();
 		for (int i = 0; i < len; i++) {
 			int r = random.nextInt(36);
-			if (r < 10) {
-				dest[i] = (char) ('0' + r);
-			} else {
-				dest[i] = (char) ('a' + r - 10);
-			}
+			dest[i] = alpha[r];
 		}
 		return new String(dest);
 	}
-
-	public static String readerFromInputStream(InputStream is, String charset) throws IOException {
-		if (is == null) {
-			return null;
+	public static String randLetter(int len) {
+		char[] dest = new char[len];
+		Random random = new Random();
+		for (int i = 0; i < len; i++) {
+			int r = random.nextInt(26);
+			dest[i] = alpha[r+10];
 		}
-		InputStreamReader isr = null;
-		BufferedReader br = null;
-		StringBuilder sb = new StringBuilder();
-		try {
-			if (charset == null) {
-				isr = new InputStreamReader(is);
-			} else {
-				isr = new InputStreamReader(is, charset);
-			}
-
-			br = new BufferedReader(isr);
-
-			String tmp = null;
-			while ((tmp = br.readLine()) != null) {
-				sb.append(tmp);
-			}
-		} finally {
-			close(br);
-		}
-		return sb.toString();
+		return new String(dest);
 	}
-
-	public static String readerFromReader(Reader reader) throws IOException {
-		if (reader == null) {
-			return null;
+	public static String randNum(int len) {
+		char[] dest = new char[len];
+		Random random = new Random();
+		dest[0]=alpha[random.nextInt(9)+1];
+		for (int i = 1; i < len; i++) {
+			int r = random.nextInt(10);
+			dest[i] = alpha[r+10];
 		}
-		StringBuilder sb = new StringBuilder();
-		BufferedReader br = new BufferedReader(reader);
-		String tmp = null;
-		while ((tmp = br.readLine()) != null) {
-			sb.append(tmp);
-		}
-		return sb.toString();
+		return new String(dest);
 	}
 
 	private static final DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -217,15 +229,16 @@ public class CommUtil {
 		if (isEmpty(objs)) {
 			return;
 		}
-		try {
-			for (Closeable obj : objs) {
-				if (obj == null) {
-					continue;
-				}
-				obj.close();
+
+		for (Closeable obj : objs) {
+			if (obj == null) {
+				continue;
 			}
-		} catch (IOException e) {
-			throw new IllegalStateException("close resource error", e);
+			try {
+				obj.close();
+			} catch (IOException e) {
+				throw new IllegalStateException("close resource error", e);
+			}
 		}
 	}
 }

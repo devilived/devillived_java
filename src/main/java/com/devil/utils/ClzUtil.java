@@ -1,18 +1,53 @@
 package com.devil.utils;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 public class ClzUtil {
-
-	public static Object getField(Object obj, String fieldName) {
-
+	public static void invoke(Object obj, String methodName, Object... args) {
 		Class<?> clz;
 		if (obj instanceof Class) {
 			clz = (Class<?>) obj;
 		} else {
 			clz = obj.getClass();
 		}
-		obj.getClass();
+
+		if (args != null && args.length > 0) {
+			Method[] mthds = clz.getDeclaredMethods();
+			for (Method mthd : mthds) {
+				if (mthd.getName().equals(methodName)) {
+					mthd.setAccessible(true);
+					try {
+						mthd.invoke(obj, args);
+					} catch (IllegalArgumentException e) {
+						continue;
+					} catch (Throwable e) {
+						throw new IllegalStateException("invoke method error", e);
+					} finally {
+						mthd.setAccessible(false);
+					}
+				}
+			}
+		}
+	}
+	
+	public static Method getMethod(Class<?> clz,String name){
+		 Method[] methods = clz.getDeclaredMethods();
+		 for(Method mthd:methods){
+			 if(mthd.getName().equals(name)){
+				 return mthd;
+			 }
+		 }
+		 return null;
+	}
+
+	public static Object getField(Object obj, String fieldName) {
+		Class<?> clz;
+		if (obj instanceof Class) {
+			clz = (Class<?>) obj;
+		} else {
+			clz = obj.getClass();
+		}
 		Field f = getField(clz, fieldName);
 		f.setAccessible(true);
 		try {
@@ -23,6 +58,8 @@ public class ClzUtil {
 			}
 		} catch (Throwable e) {
 			throw new IllegalStateException("set field error", e);
+		} finally {
+			f.setAccessible(false);
 		}
 	}
 
@@ -34,6 +71,8 @@ public class ClzUtil {
 			f.set(obj, value);
 		} catch (Exception e) {
 			throw new IllegalStateException("set field error", e);
+		} finally {
+			f.setAccessible(false);
 		}
 	}
 

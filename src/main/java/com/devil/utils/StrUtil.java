@@ -55,24 +55,14 @@ public final class StrUtil {
 		}
 		return src;
 	}
-
-	/**
-	 * 把一段unicode十六进制字符串转换为普通字符串
-	 * "&#x6b22;&#x8fce;&#x5149;&#x4e34;&#x672c;&#x7ad9;&#xff0c;&#x9875;&#x9762;&#x6b63;&#x5728;&#x91cd;&#x65b0;&#x8f7d;&#x5165;&#xff0c;&#x8bf7;&#x7a0d;&#x5019;&#x20;&#x2e;&#x2e;&#x2e;";
-	 * 转换为"欢迎光临本站，页面正在重新载入，请稍候 ..."
-	 */
-	public static String unicode2String(String unicode) {
-		if (unicode == null) {
-			return null;
+	public static String subString(String src,String start,String end){
+		int startIdx=0,endIdx=src.length();
+		if(start!=null){
+			startIdx=src.indexOf(start);
 		}
-		StringBuffer sb = new StringBuffer();
-		String[] arr = unicode.replaceAll("\\s", "").split(";");
-		for (String s : arr) {
-			s = s.replace("&#x", "");
-			sb.append((char) (Integer.parseInt(s, 16)));
+		if(end!=null){
+			endIdx=src.indexOf(end);
 		}
-
-		return sb.toString();
+		return src.substring(startIdx,endIdx);
 	}
-
 }

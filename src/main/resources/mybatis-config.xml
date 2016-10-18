@@ -69,6 +69,10 @@
 	        <!-- always总是返回PageInfo类型,check检查返回类型是否为PageInfo,none返回Page -->
 	        <property name="returnPageInfo" value="none"/>
 	    </plugin>
+	    <plugin interceptor="com.devil.mabatis.service.ShardHelper">
+       		<property name="include" value="com.devil.mybatis.dao.TestDao=test"/>
+       		<property name="strategy" value="com.devil.mabatis.service.UserShardStrategy"/>
+       </plugin>
 	</plugins>
 	<environments default="development">
 		<environment id="development">

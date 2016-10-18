@@ -49,13 +49,26 @@ public class PkgUtil {
 
 	public static void main(String[] args) {
 		String pkg = "com.vidmt.api.common.utils";
-		Set<Class<?>> set = findClassList(pkg, null);
+		Set<Class<?>> set = findClassList(pkg, null,true);
 		for (Class<?> clz : set) {
 			System.out.println(clz);
 		}
 	}
+	
+	public static Set<Class<?>> findClassList(String packageName) {
+		return findClassList(packageName, null);
+	}
 
+	public static Set<Class<?>> findClassList(String packageName, boolean recursive) {
+		return findClassList(packageName, null, recursive);
+	}
+	
 	public static Set<Class<?>> findClassList(String packageName, Class<? extends Annotation> anno) {
+		return findClassList(packageName, anno,true);
+	}
+	
+
+	public static Set<Class<?>> findClassList(String packageName, Class<? extends Annotation> anno,boolean recursive) {
 		try {
 			ClassLoader loader = Thread.currentThread().getContextClassLoader();
 			// 按文件的形式去查找
@@ -66,11 +79,11 @@ public class PkgUtil {
 			while (urls.hasMoreElements()) {
 				URL url = urls.nextElement();
 				if (isJarURL(url)) {
-					result.addAll(doFindPathMatchingJarResources(url));
+					result.addAll(doFindPathMatchingJarResources(url,recursive));
 				} else {
 					try {
 						File rootdir = new File(url.toURI());
-						result.addAll(retrieveMatchingFiles(rootdir, pkgdirpattern));
+						result.addAll(retrieveMatchingFiles(rootdir, pkgdirpattern,recursive));
 					} catch (URISyntaxException e) {
 						logger.error("url " + url + "  to file error", e);
 					}
@@ -93,7 +106,7 @@ public class PkgUtil {
 		}
 	}
 
-	private static Set<Class<?>> retrieveMatchingFiles(File rootDir, String pkgdirpattern) throws IOException {
+	private static Set<Class<?>> retrieveMatchingFiles(File rootDir, String pkgdirpattern,boolean recursive) throws IOException {
 		if (!rootDir.exists()) {
 			// Silently skip non-existing directories.
 			if (logger.isDebugEnabled()) {
@@ -116,11 +129,11 @@ public class PkgUtil {
 			return Collections.emptySet();
 		}
 		Set<Class<?>> result = new LinkedHashSet<Class<?>>(8);
-		doRetrieveMatchingFiles(rootDir, pkgdirpattern, result);
+		doRetrieveMatchingFiles(rootDir, pkgdirpattern, result,recursive);
 		return result;
 	}
 
-	private static Set<Class<?>> doFindPathMatchingJarResources(URL url) throws IOException {
+	private static Set<Class<?>> doFindPathMatchingJarResources(URL url,boolean recursive) throws IOException {
 		URLConnection con = url.openConnection();
 		JarFile jarFile;
 		String jarFileUrl;
@@ -171,13 +184,16 @@ public class PkgUtil {
 			for (Enumeration<JarEntry> entries = jarFile.entries(); entries.hasMoreElements();) {
 				JarEntry entry = entries.nextElement();
 				String entryPath = entry.getName();
-				if (entryPath.startsWith(rootEntryPath)) {
+				boolean validpath = recursive?entryPath.startsWith(rootEntryPath):entryPath.equals(rootEntryPath);
+				if (validpath) {
 					if (entryPath.endsWith(".class")) {
-						try {
-							Class<?> clz = Class.forName(entryPath.replace("/", ".").replace(".class", ""));
-							result.add(clz);
-						} catch (ClassNotFoundException e) {
-							e.printStackTrace();
+						String className = entryPath.replace("/", ".").replace(".class", "");
+						if(!className.matches(".+\\$\\d+$")){
+							try {
+								result.add(Class.forName(className));
+							} catch (ClassNotFoundException e) {
+								e.printStackTrace();
+							}
 						}
 					}
 				}
@@ -238,7 +254,7 @@ public class PkgUtil {
 	 * @throws IOException
 	 *             if directory contents could not be retrieved
 	 */
-	private static void doRetrieveMatchingFiles(File dir, String pkgdirpattern, Set<Class<?>> result)
+	private static void doRetrieveMatchingFiles(File dir, String pkgdirpattern, Set<Class<?>> result,boolean recursive)
 			throws IOException {
 		File[] dirContents = dir.listFiles();
 		if (dirContents == null) {
@@ -255,16 +271,21 @@ public class PkgUtil {
 								+ "] because the application is not allowed to read the directory");
 					}
 				} else {
-					doRetrieveMatchingFiles(content, pkgdirpattern, result);
+					if (recursive) {
+						doRetrieveMatchingFiles(content, pkgdirpattern, result,true);
+					}
 				}
 			} else if (content.isFile() && content.getName().endsWith(".class")) {
 				String path = content.getAbsolutePath();
 				int idx = path.lastIndexOf(pkgdirpattern);
 				String className = path.substring(idx).replace(File.separator, ".").replace(".class", "");
-				try {
-					result.add(Class.forName(className));
-				} catch (ClassNotFoundException e) {
-					logger.error("init class " + className + " error", e);
+				
+				if(!className.matches(".+\\$\\d+$")){
+					try {
+						result.add(Class.forName(className));
+					} catch (ClassNotFoundException e) {
+						logger.error("init class " + className + " error", e);
+					}
 				}
 			}
 		}

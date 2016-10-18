@@ -109,9 +109,10 @@ public class HttpUtil {
 			// HttpResponse resp = executeWithCheckProxy(req);
 			CloseableHttpClient client = getHttpClient();
 			resp = client.execute(req);
-			if (resp == null || resp.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+			if (resp == null || resp.getStatusLine().getStatusCode() < 200
+					|| resp.getStatusLine().getStatusCode() > 299) {
 				req.abort();
-				throw new HttpException("url:" + req.getURI() + "->\n reponse:" + resp.getStatusLine().toString());
+				throw new IOException("url:" + req.getURI() + "->\n reponse:" + resp.getStatusLine().toString());
 			}
 
 			HttpEntity entity = resp.getEntity();
@@ -142,7 +143,8 @@ public class HttpUtil {
 		try {
 			CloseableHttpClient client = getHttpClient();
 			resp = client.execute(req);
-			if (resp == null || resp.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+			if (resp == null || resp.getStatusLine().getStatusCode() < 200
+					|| resp.getStatusLine().getStatusCode() > 299) {
 				req.abort();
 				throw new IOException("url:" + req.getURI() + "->\n reponse:" + resp.getStatusLine().toString());
 			}
