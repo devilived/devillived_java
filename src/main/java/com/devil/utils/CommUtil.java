@@ -117,6 +117,14 @@ public class CommUtil {
 			return null;
 		}
 	}
+	public static boolean equalsAny(Object tgt,Object... any){
+		for(Object obj:any){
+			if(tgt.equals(obj)){
+				return true;
+			}
+		}
+		return false;
+	}
 
 	public static String fmtException(Throwable e) {
 		Writer sw = new StringWriter();
