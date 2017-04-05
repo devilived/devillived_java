@@ -44,9 +44,17 @@ public class CommUtil {
 		return false;
 	}
 
-	public static boolean isSubClass(Class<?> clz, Class<?> subClz) {
+	public static <T> boolean eqAny(T target, T... any) {
+		for (T obj : any) {
+			if (target.equals(obj)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	public static boolean isSubClass(Class<?> clz,Class<?> superclz) {
 		try {
-			subClz.asSubclass(clz);
+			clz.asSubclass(superclz);
 			return true;
 		} catch (ClassCastException e) {
 			return false;
@@ -116,14 +124,6 @@ public class CommUtil {
 			e.printStackTrace();
 			return null;
 		}
-	}
-	public static boolean equalsAny(Object tgt,Object... any){
-		for(Object obj:any){
-			if(tgt.equals(obj)){
-				return true;
-			}
-		}
-		return false;
 	}
 
 	public static String fmtException(Throwable e) {
