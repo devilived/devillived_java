@@ -35,7 +35,14 @@ public class ClzUtil {
 		 Method[] methods = clz.getDeclaredMethods();
 		 for(Method mthd:methods){
 			 if(mthd.getName().equals(name)){
-				 return mthd;
+				 //因为无论getMethods还是getDeclaredMethods,对于父类和本类中的方法,只要返回值不同,都会作为独立的对象返回。
+				 //但是getMthod只会返回最接近本类的方法，为了防止父类中的抽象方法干扰，这里需要根据参数重新过滤一下
+				 Class<?>[] parameterTypes = mthd.getParameterTypes();
+				 try {
+					return clz.getMethod(name, parameterTypes);
+				} catch (NoSuchMethodException | SecurityException e) {
+					log.error("因为重名，理论上不会走到这里!!");
+				}
 			 }
 		 }
 		 return null;
