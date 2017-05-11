@@ -3,7 +3,12 @@ package com.devil.utils;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ClzUtil {
+	
+	private static final Logger log = LoggerFactory.getLogger(ClzUtil.class);
 	public static void invoke(Object obj, String methodName, Object... args) {
 		Class<?> clz;
 		if (obj instanceof Class) {
