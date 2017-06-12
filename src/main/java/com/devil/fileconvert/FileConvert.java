@@ -71,7 +71,7 @@ public class FileConvert {
 				} catch (IOException e) {
 					e.printStackTrace();
 				} finally {
-					DebugUtil.close(fw);
+					CommUtil.close(fw);
 				}
 				return super.visitFile(file, attrs);
 			}

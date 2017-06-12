@@ -2,17 +2,12 @@ package com.devil.utils;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
-import com.devil.utils.IteratorUtil.ITreeIterator;
 import com.google.common.io.Files;
 
 public final class FileUtil {
@@ -36,7 +31,7 @@ public final class FileUtil {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			DebugUtil.close(bw);
+			CommUtil.close(bw);
 		}
 		f.delete();
 		tmpFile.renameTo(f);

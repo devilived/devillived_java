@@ -1,16 +1,27 @@
 package com.devil.utils;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Reader;
-import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
 public final class DebugUtil {
+	public static <T extends Comparable<? super T>> List<T> sort(Collection<T> collection) {
+		List<T> list = new ArrayList<>(collection);
+		Collections.sort(list);
+		return list;
+	}
+
+	public static <T extends Comparable<? super T>> T[] sort(T... arr) {
+		Arrays.sort(arr);
+		return arr;
+	}
+
 	public static <T> void printArr(T[] arr) {
 		if (arr != null) {
 			for (T t : arr) {
@@ -27,30 +38,5 @@ public final class DebugUtil {
 		UIUtil.positionFrameOnScreen(f, 0.5D, 0.5D);
 
 		f.setVisible(true);
-	}
-
-	public static void close(Object... objs) {
-		if (CommUtil.isEmpty(objs)) {
-			return;
-		}
-		try {
-			for (Object obj : objs) {
-				if (obj instanceof InputStream) {
-					((InputStream) obj).close();
-				} else if (obj instanceof OutputStream) {
-					((OutputStream) obj).close();
-				} else if (obj instanceof Reader) {
-					((Reader) obj).close();
-				} else if (obj instanceof Writer) {
-					((Writer) obj).close();
-				} else {
-					throw new IllegalArgumentException(
-							"only inputstream/outputstream/reader/writer can be the param");
-				}
-
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 	}
 }
