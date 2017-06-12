@@ -5,10 +5,12 @@ import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Arrays;
+import java.util.Base64;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 /* 
@@ -19,9 +21,14 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class AES128Coder {
 	private static final String KEY_TYPE = "AES";
-	private static final String CIPHER_ALGORITHM_ECB  = "AES/ECB/PKCS5Padding";
+	private static final String AES = "AES";
+	private static final String AES_ECB = "AES/ECB/PKCS5Padding";
+	private static final String AES_CBC = "AES/CBC/PKCS5Padding";
+	private static final String ALGORITHM = AES_ECB;
 
-//	private static final String CIPHER_ALGORITHM_ECB  = "AES";
+	// "AES/ECB/PKCS5Padding";
+
+	// private static final String CIPHER_ALGORITHM_ECB = "AES";
 
 	private byte[] key = null;
 
@@ -46,15 +53,31 @@ public class AES128Coder {
 		} else if (key.length > 16) {
 			key = Arrays.copyOf(key, 16);
 		}
-		System.out.println("key="+Arrays.toString(key));
+		System.out.println("key=" + Arrays.toString(key));
 		this.key = key;
 	}
 
 	public static void main(String[] args) {
+		// System.err.println("providers:" +
+		// Arrays.toString(Security.getProviders()));
+		// System.err.println("Cipher:" +
+		// DebugUtil.sortToString(Security.getAlgorithms("Cipher")));
+		// System.err.println("Signature:" +
+		// DebugUtil.sortToString(Security.getAlgorithms("Signature")));
+		// System.err.println("MessageDigest:" +
+		// DebugUtil.sortToString(Security.getAlgorithms("MessageDigest")));
+		// System.err.println("KeyStore:" +
+		// DebugUtil.sortToString(Security.getAlgorithms("KeyStore")));
+		// System.err.println("Mac:" +
+		// DebugUtil.sortToString(Security.getAlgorithms("Mac")));
+		// Provider jceProvider = Security.getProvider("SunJCE");
+		// System.err.println("JCE::" +
+		// DebugUtil.sortToString(jceProvider.getServices()));
+		System.out.println("======================================");
 		// String src = "guessyourheart";
 		// System.out.println("原文是:" + src);
 		// byte[] key = "guessyourheart".getBytes(Charset.forName("UTF-8"));
-		String src = "123455";
+		String src = "1234567812345678";
 		System.out.println("原文是:" + src);
 		byte[] key = "12345678".getBytes(Charset.forName("UTF-8"));
 		AES128Coder coder = new AES128Coder(key);
@@ -74,13 +97,12 @@ public class AES128Coder {
 	}
 
 	public String encrypt(byte[] src) {
-		byte[] bytes = this.aesEncrypt(src);
-		System.out.println("bytes[]=" + Arrays.toString(bytes));
-		return CommUtil.encBase64Url(bytes);
+		// System.out.println("bytes[]=" + ByteUtil.toHexString(bytes));
+		return Base64.getMimeEncoder().encodeToString(this.aesEncrypt(src));
 	}
 
 	public byte[] decrypt(String src) {
-		return this.aesDecrypt(CommUtil.decBase64Url(src));
+		return this.aesDecrypt(Base64.getMimeDecoder().decode(src));
 	}
 
 	/********** public functions ends ******************/
@@ -110,31 +132,56 @@ public class AES128Coder {
 		return new SecretKeySpec(key, KEY_TYPE);
 	}
 
-	private byte[] aesDecrypt(byte[] cipherText) {
+	private byte[] aesDecrypt(byte[] cipherBytes) {
 		byte[] key = this.key;
 		byte[] plainText = null;
 		try {
 			Key k = this.toKey(key);
-			Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM_ECB);
-			cipher.init(Cipher.DECRYPT_MODE, k);
-			plainText = cipher.doFinal(cipherText);
+			// System.out.println(
+			// "decrypt key:" + k.getAlgorithm() + "--" + k.getFormat() + "--" +
+			// Arrays.toString(k.getEncoded()));
+			Cipher cipher = Cipher.getInstance(ALGORITHM);
+			if (AES_CBC.equals(ALGORITHM)) {
+				IvParameterSpec iv = new IvParameterSpec(new byte[16]);// 使用CBC模式，需要一个向量iv，可增加加密算法的强度
+				cipher.init(Cipher.DECRYPT_MODE, k, iv);
+			} else {
+				cipher.init(Cipher.DECRYPT_MODE, k);
+			}
+			// System.out.println("cipher:" + cipher.getAlgorithm() +
+			// "--blockSize:" + cipher.getBlockSize()
+			// + "--outputsize:" + cipher.getOutputSize(cipherBytes.length) +
+			// "--provider:" + cipher.getProvider());
+			plainText = cipher.doFinal(cipherBytes);
 		} catch (Exception e) {
-			e.printStackTrace();
+			throw new IllegalStateException(e);
 		}
 
 		return plainText;
 	}
 
-	private byte[] aesEncrypt(byte[] plainText) {
+	private byte[] aesEncrypt(byte[] plainBytes) {
 		byte[] key = this.key;
 		byte[] cipherText = null;
 		try {
 			Key k = this.toKey(key);
-			Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM_ECB);
-			cipher.init(Cipher.ENCRYPT_MODE, k);
-			cipherText = cipher.doFinal(plainText);
+			// System.out.println(
+			// "encrypt key:" + k.getAlgorithm() + "--" + k.getFormat() + "--" +
+			// Arrays.toString(k.getEncoded()));
+			Cipher cipher = Cipher.getInstance(ALGORITHM);
+
+			if (AES_CBC.equals(ALGORITHM)) {
+				IvParameterSpec iv = new IvParameterSpec(new byte[16]);// 使用CBC模式，需要一个向量iv，可增加加密算法的强度
+				cipher.init(Cipher.ENCRYPT_MODE, k, iv);
+			} else {
+				cipher.init(Cipher.ENCRYPT_MODE, k);
+			}
+			// System.out.println("cipher:" + cipher.getAlgorithm() +
+			// "--blockSize:" + cipher.getBlockSize()
+			// + "--outputsize:" + cipher.getOutputSize(plainBytes.length) +
+			// "--provider:" + cipher.getProvider());
+			cipherText = cipher.doFinal(plainBytes);
 		} catch (Exception e) {
-			e.printStackTrace();
+			throw new IllegalStateException(e);
 		}
 
 		return cipherText;

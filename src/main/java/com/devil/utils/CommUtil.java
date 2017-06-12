@@ -52,8 +52,12 @@ public class CommUtil {
 		}
 		return false;
 	}
-	public static boolean isSubClass(Class<?> clz,Class<?> superclz) {
+
+	public static boolean isSubClass(Class<?> clz, Class<?> superclz) {
 		try {
+			/**
+			 * 正好与 isAssignableFrom相反
+			 */
 			clz.asSubclass(superclz);
 			return true;
 		} catch (ClassCastException e) {
@@ -143,7 +147,7 @@ public class CommUtil {
 	public static <T extends Throwable> T getException(Throwable e, Class<T> type) {
 		while (true) {
 			if (isSubClass(type, e.getClass())) {
-				return (T)e;
+				return (T) e;
 			} else {
 				e = e.getCause();
 				if (e == null) {
@@ -162,7 +166,7 @@ public class CommUtil {
 			throw new IllegalArgumentException(clzName);
 		}
 	}
-	
+
 	public static int randInt(int len) {
 		if (len > 9) {
 			throw new IllegalArgumentException("the length of 'len' must be less than 9");
@@ -186,22 +190,24 @@ public class CommUtil {
 		}
 		return new String(dest);
 	}
+
 	public static String randLetter(int len) {
 		char[] dest = new char[len];
 		Random random = new Random();
 		for (int i = 0; i < len; i++) {
 			int r = random.nextInt(26);
-			dest[i] = alpha[r+10];
+			dest[i] = alpha[r + 10];
 		}
 		return new String(dest);
 	}
+
 	public static String randNum(int len) {
 		char[] dest = new char[len];
 		Random random = new Random();
-		dest[0]=alpha[random.nextInt(9)+1];
+		dest[0] = alpha[random.nextInt(9) + 1];
 		for (int i = 1; i < len; i++) {
 			int r = random.nextInt(10);
-			dest[i] = alpha[r+10];
+			dest[i] = alpha[r + 10];
 		}
 		return new String(dest);
 	}

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.JComponent;
@@ -11,18 +12,22 @@ import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
 public final class DebugUtil {
-	public static <T extends Comparable<? super T>> List<T> sort(Collection<T> collection) {
-		List<T> list = new ArrayList<>(collection);
+	public static String sortToString(Collection<?> collection) {
+		List<String> list = new ArrayList<>(collection.size());
+		Iterator<?> it = collection.iterator();
+		while (it.hasNext()) {
+			list.add(it.next().toString());
+		}
 		Collections.sort(list);
-		return list;
+		return list.toString();
 	}
 
-	public static <T extends Comparable<? super T>> T[] sort(T... arr) {
+	public static String sortToString(Object... arr) {
 		Arrays.sort(arr);
-		return arr;
+		return Arrays.toString(arr);
 	}
 
-	public static <T> void printArr(T[] arr) {
+	public static <T> void printAsLine(T[] arr) {
 		if (arr != null) {
 			for (T t : arr) {
 				System.out.println(t);
