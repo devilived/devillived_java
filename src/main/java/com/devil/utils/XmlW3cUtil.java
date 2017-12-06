@@ -1,9 +1,12 @@
 package com.devil.utils;
 
-import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
@@ -11,14 +14,31 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
 
 public final class XmlW3cUtil {
+
+	public static Document getXmlDocFromFile(Reader reader) {
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+
+		Document doc = null;
+		try {
+			DocumentBuilder builder = factory.newDocumentBuilder();
+			doc = builder.parse(new InputSource(reader));
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		return doc;
+	}
+
 	public static String toPrettyXml(Document doc) {
-		try (StringWriter sw = new StringWriter()) {
+		StringWriter sw = null;
+		try {
+			sw = new StringWriter();
 			writeXml(doc, sw);
 			return sw.toString();
-		} catch (IOException e) {
-			throw new IllegalStateException(e);
+		} finally {
+			CommUtil.close(sw);
 		}
 	}
 
