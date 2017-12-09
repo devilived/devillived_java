@@ -1,4 +1,4 @@
-package com.devil.mail;
+package com.devil.shell;
 
 import java.io.File;
 import java.util.Date;
